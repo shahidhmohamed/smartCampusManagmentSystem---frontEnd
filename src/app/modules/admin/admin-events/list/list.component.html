@@ -1,0 +1,237 @@
+<mat-drawer-container class="bg-card h-full flex-auto dark:bg-transparent">
+    <!-- Drawer -->
+    <mat-drawer
+        class="w-full dark:bg-gray-900 sm:w-128"
+        [mode]="drawerMode"
+        [opened]="matDrawer.opened"
+        [position]="'end'"
+        #matDrawer
+    >
+        <div class="p-6">
+            <h2 class="text-xl font-bold" *ngIf="isAddingNew">Add Event</h2>
+            <h2 class="text-xl font-bold" *ngIf="!isAddingNew">
+                {{ selectedEvent?.eventName }}
+            </h2>
+
+            <form [formGroup]="selectedEventForm">
+                <mat-form-field class="w-full">
+                    <mat-label>Event Name</mat-label>
+                    <input matInput formControlName="eventName" />
+                </mat-form-field>
+
+                <mat-form-field class="w-full">
+                    <mat-label>Description</mat-label>
+                    <textarea matInput formControlName="description"></textarea>
+                </mat-form-field>
+
+                <div class="mb-3">
+                    <label class="form-label" for="field_eventDate"
+                        >Event Date</label
+                    >
+                    <div class="d-flex">
+                        <input
+                            id="field_eventDate"
+                            data-cy="eventDate"
+                            type="datetime-local"
+                            class="form-control"
+                            name="eventDate"
+                            formControlName="eventDate"
+                            placeholder="YYYY-MM-DD HH:mm"
+                        />
+                    </div>
+                </div>
+
+                <mat-form-field class="w-full">
+                    <mat-label>Location</mat-label>
+                    <input matInput formControlName="location" />
+                </mat-form-field>
+
+                <mat-form-field class="w-full">
+                    <mat-label>Capacity</mat-label>
+                    <input matInput type="number" formControlName="capacity" />
+                </mat-form-field>
+
+                <div class="flex flex-row gap-3">
+                    <mat-form-field class="w-1/2">
+                        <mat-label>Status</mat-label>
+                        <mat-select formControlName="status" required>
+                            <mat-option
+                                *ngFor="let item of status"
+                                [value]="item.value"
+                                >{{ item.label }}</mat-option
+                            >
+                        </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field class="w-1/2">
+                        <mat-label>Approval Status</mat-label>
+                        <mat-select formControlName="eventType" required>
+                            <mat-option
+                                *ngFor="let item of approval"
+                                [value]="item.value"
+                                >{{ item.label }}</mat-option
+                            >
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+
+                <div class="mt-4 flex justify-end">
+                    <button mat-button (click)="matDrawer.close()">
+                        Cancel
+                    </button>
+                    <button
+                        mat-flat-button
+                        color="primary"
+                        (click)="saveEvent()"
+                    >
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </mat-drawer>
+
+    <mat-drawer-content class="flex flex-col">
+        <div class="flex flex-auto flex-col">
+            <div
+                class="flex flex-col items-start px-6 py-8 sm:flex-row sm:items-center sm:justify-between md:px-8"
+            >
+                <div>
+                    <div
+                        class="text-4xl font-extrabold leading-none tracking-tight"
+                    >
+                        Events
+                    </div>
+                    <div class="text-secondary ml-0.5 mt-2 font-medium">
+                        <span>All Events {{ campusEvent.length }}!</span>
+                    </div>
+                </div>
+                <div class="mt-6 flex shrink-0 items-center sm:ml-4 sm:mt-0">
+                    <mat-form-field
+                        class="fuse-mat-dense fuse-mat-rounded min-w-64"
+                        [subscriptSizing]="'dynamic'"
+                    >
+                        <mat-icon
+                            class="icon-size-5"
+                            matPrefix
+                            [svgIcon]="'heroicons_solid:magnifying-glass'"
+                        ></mat-icon>
+                        <input
+                            matInput
+                            [formControl]="searchInputControl"
+                            [autocomplete]="'off'"
+                            [placeholder]="'Search Event'"
+                        />
+                    </mat-form-field>
+                    <button
+                        mat-flat-button
+                        class="ml-4"
+                        color="primary"
+                        (click)="openAddEventDrawer()"
+                    >
+                        <mat-icon svgIcon="heroicons_outline:plus"></mat-icon>
+                        <span class="ml-2 mr-1">Add Events</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Event List -->
+            <div
+                *ngIf="campusEvent && campusEvent.length > 0"
+                class="divide-y"
+                cdkDropList
+                [cdkDropListData]="campusEvent"
+                (cdkDropListDropped)="dropped($event)"
+            >
+                <div
+                    *ngFor="let event of campusEvent; trackBy: trackByFn"
+                    class="group w-full select-none dark:hover:bg-hover hover:bg-gray-100"
+                    (click)="toggleDetails(event.id)"
+                    cdkDrag
+                    [cdkDragLockAxis]="'y'"
+                >
+                    <div class="relative flex h-full items-center pl-10">
+                        <div
+                            *ngIf="selectedTask?.id === event.id"
+                            class="absolute -bottom-px -top-px right-0 z-10 flex w-1 flex-0 bg-primary"
+                        ></div>
+
+                        <div
+                            class="absolute inset-y-0 left-0 flex w-8 cursor-move items-center justify-center md:hidden md:group-hover:flex"
+                            cdkDragHandle
+                        >
+                            <mat-icon
+                                class="text-hint icon-size-5"
+                                svgIcon="heroicons_solid:bars-3"
+                            ></mat-icon>
+                        </div>
+
+                        <div
+                            class="flex h-full min-w-0 flex-auto items-center pr-7"
+                        >
+                            <div class="mr-2 flex-auto truncate p-2">
+                                <span
+                                    class="text-lg font-bold"
+                                    *ngIf="event.eventName"
+                                    >{{ event.eventName }}</span
+                                >
+                                <span
+                                    *ngIf="!event.eventName"
+                                    class="text-hint select-none"
+                                    >Untitled event</span
+                                >
+                                <div
+                                    class="text-secondary mr-2 items-center pr-7 text-sm"
+                                    *ngIf="event.status"
+                                >
+                                    {{ event.status }}
+                                </div>
+                            </div>
+
+                            <div
+                                class="text-secondary whitespace-nowrap text-sm"
+                                *ngIf="event.eventDate"
+                            >
+                                {{
+                                    event.eventDate
+                                        | date: 'MMM dd, yyyy hh:mm a'
+                                }}
+                            </div>
+                            <div
+                                class="group relative flex h-full items-center pl-10"
+                                (click)="toggleDetails(event.id)"
+                            >
+                                <!-- Delete Button -->
+                                <div
+                                    class="absolute right-0 flex w-8 items-center justify-center opacity-0 transition-opacity group-hover:opacity-100"
+                                >
+                                    <mat-icon
+                                        svgIcon="delete"
+                                        (click)="deleteTask(event.id, $event)"
+                                        class="cursor-pointer text-red-500"
+                                    ></mat-icon>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- No Events Message -->
+            <div
+                *ngIf="!campusEvent || campusEvent.length === 0"
+                class="flex flex-auto flex-col items-center justify-center bg-gray-100 dark:bg-transparent"
+            >
+                <mat-icon
+                    class="icon-size-24"
+                    svgIcon="heroicons_outline:clipboard-document-list"
+                ></mat-icon>
+                <div
+                    class="text-secondary mt-4 text-2xl font-semibold tracking-tight"
+                >
+                    Add a task to start planning!
+                </div>
+            </div>
+        </div>
+    </mat-drawer-content>
+</mat-drawer-container>

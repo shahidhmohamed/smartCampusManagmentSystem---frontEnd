@@ -1,0 +1,332 @@
+<mat-drawer-container class="bg-card h-full flex-auto dark:bg-transparent">
+    <!-- Drawer -->
+    <mat-drawer
+        class="w-full dark:bg-gray-900 sm:w-128"
+        [mode]="'drawerMode'"
+        [opened]="matDrawer.opened"
+        [position]="'end'"
+        #matDrawer
+    >
+        <div class="p-6">
+            <h2 class="text-xl font-bold" *ngIf="isAddingNew">
+                Add Resource Booking
+            </h2>
+            <h2 class="text-xl font-bold" *ngIf="!isAddingNew">
+                {{ selectedResourceBooking?.resource?.id }}
+            </h2>
+
+            <form [formGroup]="selectedResourceBookingForm">
+                <!-- Resource -->
+                <mat-form-field class="w-full">
+                    <mat-label>Resource</mat-label>
+                    <mat-select formControlName="resource" required>
+                        <mat-option
+                            *ngFor="let res of campusResources"
+                            [value]="res.id"
+                        >
+                            {{ res.name }} ({{ res.resourceType }})
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <!-- User ID -->
+                <!-- <mat-form-field class="w-full">
+                <mat-label>User ID</mat-label>
+                <input matInput formControlName="userId" required />
+            </mat-form-field> -->
+
+                <!-- Start Time -->
+                <div class="mb-3">
+                    <label class="form-label" for="field_startTime"
+                        >Start Time</label
+                    >
+                    <div class="d-flex">
+                        <input
+                            id="field_startTime"
+                            data-cy="startTime"
+                            type="datetime-local"
+                            class="form-control"
+                            name="startTime"
+                            formControlName="startTime"
+                            placeholder="YYYY-MM-DD HH:mm"
+                        />
+                    </div>
+                </div>
+                <!-- <mat-form-field class="w-full">
+                <mat-label>Start Time</mat-label>
+                <input matInput [matDatepicker]="startPicker" formControlName="startTime" required />
+                <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+                <mat-datepicker #startPicker></mat-datepicker>
+            </mat-form-field> -->
+
+                <!-- End Time -->
+                <div class="mb-3">
+                    <label class="form-label" for="field_endTime"
+                        >End Time</label
+                    >
+                    <div class="d-flex">
+                        <input
+                            id="field_endTime"
+                            data-cy="endTime"
+                            type="datetime-local"
+                            class="form-control"
+                            name="endTime"
+                            formControlName="endTime"
+                            placeholder="YYYY-MM-DD HH:mm"
+                        />
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <mat-form-field class="w-full">
+                    <mat-label>Status</mat-label>
+                    <mat-select formControlName="status" required>
+                        <mat-option value="PENDING">Pending</mat-option>
+                        <mat-option value="APPROVED">Approved</mat-option>
+                        <mat-option value="REJECTED">Rejected</mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <!-- Reason -->
+                <mat-form-field class="w-full">
+                    <mat-label>Reason</mat-label>
+                    <textarea matInput formControlName="reason"></textarea>
+                </mat-form-field>
+
+                <!-- Admin Comment -->
+                <mat-form-field class="w-full">
+                    <mat-label>Admin Comment</mat-label>
+                    <textarea
+                        matInput
+                        formControlName="adminComment"
+                    ></textarea>
+                </mat-form-field>
+
+                <!-- Action Buttons -->
+                <div class="mt-4 flex justify-end">
+                    <button mat-button (click)="matDrawer.close()">
+                        Cancel
+                    </button>
+                    <button
+                        mat-flat-button
+                        color="primary"
+                        (click)="saveResourceBooking()"
+                    >
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </mat-drawer>
+
+    <mat-drawer-content class="flex h-full flex-col">
+        <div class="flex flex-col">
+            <div class="flex flex-auto flex-col">
+                <!-- Header Section (Fixed) -->
+                <div
+                    class="flex flex-col items-start px-6 py-8 sm:flex-row sm:items-center sm:justify-between md:px-8"
+                >
+                    <div>
+                        <div
+                            class="text-4xl font-extrabold leading-none tracking-tight"
+                        >
+                            Orders
+                        </div>
+                        <div class="text-secondary ml-0.5 mt-2 font-medium">
+                            <span
+                                >All Orders
+                                {{ campusResourceBookings.length }}!</span
+                            >
+                        </div>
+                    </div>
+                    <div
+                        class="mt-6 flex shrink-0 items-center sm:ml-4 sm:mt-0"
+                    >
+                        <mat-form-field
+                            class="fuse-mat-dense fuse-mat-rounded min-w-64"
+                            [subscriptSizing]="'dynamic'"
+                        >
+                            <mat-icon
+                                class="icon-size-5"
+                                matPrefix
+                                [svgIcon]="'heroicons_solid:magnifying-glass'"
+                            ></mat-icon>
+                            <input
+                                matInput
+                                [formControl]="searchInputControl"
+                                [autocomplete]="'off'"
+                                [placeholder]="'Search Orders'"
+                            />
+                        </mat-form-field>
+                        <button
+                            mat-flat-button
+                            class="ml-4"
+                            color="primary"
+                            (click)="openAddBookingDrawer()"
+                        >
+                            <mat-icon
+                                svgIcon="heroicons_outline:plus"
+                            ></mat-icon>
+                            <span class="ml-2 mr-1">Add Events</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Scrollable Order List -->
+                <div
+                    class="max-h-[calc(90vh-200px)] flex-auto overflow-y-auto px-6"
+                >
+                    <div
+                        *ngIf="
+                            campusResourceBookings &&
+                            campusResourceBookings.length > 0
+                        "
+                    >
+                        <div
+                            *ngFor="
+                                let booking of dataSource.filteredData;
+                                trackBy: trackByFn
+                            "
+                            class="group w-full select-none dark:hover:bg-hover hover:bg-gray-100"
+                            (click)="toggleBookingDetails(booking.id)"
+                            cdkDrag
+                            [cdkDragLockAxis]="'y'"
+                        >
+                            <div
+                                class="relative flex h-full items-center pl-10"
+                            >
+                                <div
+                                    *ngIf="
+                                        selectedResourceBooking?.id ===
+                                        booking.id
+                                    "
+                                    class="absolute -bottom-px -top-px right-0 z-10 flex w-1 flex-0 bg-primary"
+                                ></div>
+
+                                <div
+                                    class="absolute inset-y-0 left-0 flex w-8 cursor-move items-center justify-center md:hidden md:group-hover:flex"
+                                    cdkDragHandle
+                                >
+                                    <mat-icon
+                                        class="text-hint icon-size-5"
+                                        svgIcon="heroicons_solid:bars-3"
+                                    ></mat-icon>
+                                </div>
+
+                                <div
+                                    class="flex h-full min-w-0 flex-auto items-center pr-7"
+                                >
+                                    <div class="mr-2 p-2">
+                                        <span
+                                            class="text-1xl font-bold"
+                                            *ngIf="booking.startTime"
+                                        >
+                                            {{
+                                                booking.startTime
+                                                    | date
+                                                        : 'MMM dd, yyyy hh:mm a'
+                                            }}
+                                        </span>
+                                    </div>
+
+                                    <div
+                                        class="flex items-center justify-center"
+                                    >
+                                        <mat-icon class="text-3xl text-red-500"
+                                            >swap_horiz</mat-icon
+                                        >
+                                    </div>
+
+                                    <div class="ml-2 p-2">
+                                        <span
+                                            class="text-1xl font-bold"
+                                            *ngIf="booking.endTime"
+                                        >
+                                            {{
+                                                booking.endTime
+                                                    | date
+                                                        : 'MMM dd, yyyy hh:mm a'
+                                            }}
+                                        </span>
+                                    </div>
+
+                                    <div
+                                        class="text-secondary ml-6 whitespace-nowrap text-xl font-semibold"
+                                        *ngIf="booking.userId"
+                                    >
+                                        {{ booking.userId }}
+                                    </div>
+
+                                    <div
+                                        class="text-secondary ml-6 w-30 whitespace-nowrap text-xl font-semibold"
+                                        *ngIf="booking.reason"
+                                    >
+                                        {{ booking.reason }}
+                                    </div>
+
+                                    <div
+                                        class="text-secondary mr-6 whitespace-nowrap text-xl font-semibold"
+                                        *ngIf="booking.status"
+                                    >
+                                        {{ booking.status }}
+                                    </div>
+
+                                    <div
+                                        class="group relative flex h-full items-center pl-10"
+                                    >
+                                        <!-- Delete Button -->
+                                        <div
+                                            class="absolute right-0 flex w-8 items-center justify-center opacity-0 transition-opacity group-hover:opacity-100"
+                                        >
+                                            <mat-icon
+                                                svgIcon="delete"
+                                                (click)="
+                                                    deleteResourceBooking(
+                                                        booking.id,
+                                                        $event
+                                                    )
+                                                "
+                                                class="cursor-pointer text-red-500"
+                                            ></mat-icon>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- No Orders Message -->
+                    <div
+                        *ngIf="
+                            !campusResourceBookings ||
+                            campusResourceBookings.length === 0
+                        "
+                        class="flex flex-auto flex-col items-center justify-center bg-gray-100 dark:bg-transparent"
+                    >
+                        <mat-icon
+                            class="icon-size-24"
+                            svgIcon="heroicons_outline:clipboard-document-list"
+                        ></mat-icon>
+                        <div
+                            class="text-secondary mt-4 text-2xl font-semibold tracking-tight"
+                        >
+                            No Bookings?
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Fixed Paginator -->
+            <div>
+                <mat-paginator
+                    class="z-10 border-b bg-gray-50 dark:bg-transparent sm:absolute sm:inset-x-0 sm:bottom-0 sm:border-b-0 sm:border-t"
+                    [length]="pagination.length"
+                    [pageIndex]="pagination.page"
+                    [pageSize]="pagination.size"
+                    [pageSizeOptions]="[5, 10, 25, 100]"
+                    [showFirstLastButtons]="true"
+                    (page)="handlePageEvent($event)"
+                ></mat-paginator>
+            </div>
+        </div>
+    </mat-drawer-content>
+</mat-drawer-container>

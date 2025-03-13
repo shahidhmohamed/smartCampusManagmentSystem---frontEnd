@@ -1,0 +1,63 @@
+<h2 mat-dialog-title>{{ data ? 'Edit User' : 'Add User' }}</h2>
+<mat-dialog-content>
+    <form [formGroup]="userForm">
+        <!-- Login -->
+        <div class="flex flex-col md:flex-row md:space-x-4">
+            <mat-form-field class="w-full">
+                <mat-label>Login</mat-label>
+                <input matInput formControlName="login" />
+            </mat-form-field>
+
+            <!-- Email -->
+            <mat-form-field class="w-full">
+                <mat-label>Email</mat-label>
+                <input matInput formControlName="email" />
+            </mat-form-field>
+        </div>
+
+        <!-- First Name -->
+        <div class="mt-4 flex flex-col md:flex-row md:space-x-4">
+            <mat-form-field class="w-full">
+                <mat-label>First Name</mat-label>
+                <input matInput formControlName="firstName" />
+            </mat-form-field>
+
+            <!-- Last Name -->
+            <mat-form-field class="w-full">
+                <mat-label>Last Name</mat-label>
+                <input matInput formControlName="lastName" />
+            </mat-form-field>
+        </div>
+
+        <!-- Activated Toggle -->
+        <div class="mt-4 flex items-center">
+            <mat-slide-toggle formControlName="activated">
+                Activated
+            </mat-slide-toggle>
+        </div>
+
+        <!-- Authorities Multi-Select -->
+        <mat-form-field class="mt-4 w-full">
+            <mat-label>Authorities</mat-label>
+            <mat-select formControlName="authorities" multiple>
+                <mat-option
+                    *ngFor="let authority of authoritiesList"
+                    [value]="authority"
+                >
+                    {{ authority }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+    </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button mat-button (click)="dialogRef.close()">Cancel</button>
+    <button
+        mat-flat-button
+        color="primary"
+        (click)="saveUser()"
+        [disabled]="userForm.invalid"
+    >
+        Save
+    </button>
+</mat-dialog-actions>
