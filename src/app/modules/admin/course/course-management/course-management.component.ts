@@ -104,6 +104,7 @@ export class CourseManagementComponent {
             courseId: [''],
             courseCode: [''],
             registrationDate: [''],
+            duration: [''],
         });
 
         this.loadCoursesAndStudents();
@@ -173,6 +174,7 @@ export class CourseManagementComponent {
             this.registerForm.patchValue({
                 courseId: selectedCourse.id,
                 courseCode: selectedCourse.courseCode,
+                duration: selectedCourse.duration,
             });
         }
     }
@@ -251,8 +253,35 @@ export class CourseManagementComponent {
 
     // Edit a course
     editCourseRegitration(course: ICourseRegistration): void {
-        this.createForm = !this.createForm;
+        this.createForm = true; // Open form
+
         this.registerForm.patchValue(course);
+
+        // Ensure courses and students are available before searching
+        if (!this.allCourses.length || !this.allStudents.length) {
+            console.warn('Courses or students data is not loaded yet.');
+            return;
+        }
+
+        // Set Full Course Object for Mat-Autocomplete
+        const selectedCourse = this.allCourses.find(
+            (c) => c.id === course.courseId
+        );
+        if (selectedCourse) {
+            this.coursesControl.setValue(selectedCourse); // ✅ Correct way
+        } else {
+            console.warn('Course not found for ID:', course.courseId);
+        }
+
+        // Set Full Student Object for Mat-Autocomplete
+        const selectedStudent = this.allStudents.find(
+            (s) => s.id === course.studentId
+        );
+        if (selectedStudent) {
+            this.studentControl.setValue(selectedStudent); // ✅ Correct way (Use object)
+        } else {
+            console.warn('Student not found for ID:', course.studentId);
+        }
     }
 
     deleteCourse(course: ICourse): void {

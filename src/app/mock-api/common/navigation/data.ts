@@ -161,6 +161,25 @@ export const defaultNavigation: FuseNavigationItem[] = [
         icon: 'heroicons_outline:calendar',
         link: '/admin/class-schedule',
     },
+
+    //Students
+    {
+        id: 'student_assignments',
+        title: 'Assessment',
+        type: 'basic',
+        icon: 'heroicons_outline:academic-cap',
+        link: '/student/assessment',
+    },
+
+    //lecture
+
+    {
+        id: 'staff_assignments',
+        title: 'Assessment',
+        type: 'basic',
+        icon: 'heroicons_outline:academic-cap',
+        link: '/lecture/assessment',
+    },
 ];
 export const compactNavigation: FuseNavigationItem[] = [
     {

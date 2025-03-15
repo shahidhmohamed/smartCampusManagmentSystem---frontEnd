@@ -340,6 +340,72 @@ export class ScheduleClassesComponent implements OnInit {
     editSchedule(schedule: IClassSchedule): void {
         this.createForm = true;
         this.scheduleForm.patchValue(schedule);
+        const selectedCourse = this.allCourses.find(
+            (c) => c.id === schedule.courseId
+        );
+        if (selectedCourse) {
+            this.coursesControl.setValue(selectedCourse);
+        } else {
+            console.warn('Course not found for ID:', schedule.courseId);
+        }
+
+        // Set Full Student Object for Mat-Autocomplete
+        const selectedInstructure = this.allinstructor.find(
+            (s) => s.id === schedule.instructorId
+        );
+        if (selectedInstructure) {
+            this.instructorControl.setValue(selectedInstructure);
+        } else {
+            console.warn('Student not found for ID:', schedule.instructorId);
+        }
+
+        const selectedLocation = this.campusResources.find(
+            (s) => s.id === schedule.location
+        );
+        if (selectedLocation) {
+            this.resourceControl.setValue(selectedLocation);
+            console.log(selectedLocation);
+        } else {
+            console.warn(
+                'Student not found for IDddddddddddddd:',
+                schedule.location
+            );
+        }
+
+        this._moduleService
+            .search({
+                query: `courseId:${schedule.courseId}`,
+                size: 100,
+                sort: ['desc'],
+            })
+            .subscribe((res) => {
+                if (res.body) {
+                    const selectedModule = res.body.find(
+                        (m) => m.id === schedule.moduleId
+                    );
+                    if (selectedModule) {
+                        this.scheduleForm.patchValue({
+                            moduleId: selectedModule.id,
+                        });
+
+                        this.scheduleForm.controls[
+                            'moduleId'
+                        ].updateValueAndValidity();
+
+                        console.warn('Updated Module ID:', selectedModule.id);
+                    } else {
+                        console.warn(
+                            'Module not found for ID:',
+                            schedule.moduleId
+                        );
+                    }
+                } else {
+                    console.warn(
+                        'No modules found for Course ID:',
+                        schedule.courseId
+                    );
+                }
+            });
     }
 
     /** Delete Schedule */

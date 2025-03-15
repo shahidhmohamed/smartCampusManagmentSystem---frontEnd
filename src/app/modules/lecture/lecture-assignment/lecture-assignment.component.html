@@ -1,0 +1,261 @@
+<div class="bg-card h-full flex-auto dark:bg-transparent">
+    <div class="flex flex-auto flex-col overflow-hidden p-6 sm:col-span-6">
+        <div class="flex w-full justify-between">
+            <div class="items-center">
+                <span class="text-4xl font-bold"> Assignment Management </span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <!-- Search Input -->
+                <mat-form-field
+                    class="fuse-mat-dense fuse-mat-rounded min-w-64"
+                    [subscriptSizing]="'dynamic'"
+                >
+                    <mat-icon
+                        class="icon-size-5"
+                        matPrefix
+                        svgIcon="heroicons_solid:magnifying-glass"
+                    ></mat-icon>
+                    <input
+                        matInput
+                        [formControl]="searchText"
+                        autocomplete="off"
+                        placeholder="Search Assignment"
+                    />
+                </mat-form-field>
+
+                <!-- New Assignment Button -->
+                <button
+                    *ngIf="!createForm"
+                    mat-flat-button
+                    color="warn"
+                    type="button"
+                    (click)="toggleForm()"
+                >
+                    New
+                </button>
+
+                <!-- Close Form Button -->
+                <button
+                    *ngIf="createForm"
+                    mat-flat-button
+                    color="warn"
+                    type="button"
+                    (click)="toggleForm()"
+                >
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- Assignment Form -->
+        <form
+            [formGroup]="assignmentForm"
+            (ngSubmit)="saveCourseRegister()"
+            *ngIf="createForm"
+        >
+            <div class="grid grid-cols-3 gap-4">
+                <!-- Select Course -->
+                <mat-form-field class="mt-3 w-full">
+                    <mat-label>Select Course</mat-label>
+                    <input
+                        type="text"
+                        matInput
+                        [formControl]="coursesControl"
+                        [matAutocomplete]="autoCourse"
+                        placeholder="Type to find course"
+                    />
+                    <mat-autocomplete
+                        #autoCourse="matAutocomplete"
+                        [displayWith]="displayCourseName"
+                        (optionSelected)="onSelectCourse($event)"
+                    >
+                        <mat-option
+                            *ngFor="let course of filteredCourses$ | async"
+                            [value]="course"
+                        >
+                            {{ course.courseCode }} ({{ course.courseName }})
+                        </mat-option>
+                    </mat-autocomplete>
+                </mat-form-field>
+
+                <!-- Select Module -->
+                <mat-form-field class="mt-3 w-full">
+                    <mat-label>Select Module</mat-label>
+                    <mat-select formControlName="moduleId">
+                        <mat-option
+                            *ngFor="let module of modules"
+                            [value]="module.id"
+                        >
+                            {{ module.moduleName }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <!-- Deadline -->
+                <div class="mt-5 w-full">
+                    <label>Deadline</label>
+                    <input
+                        id="field_deadLine"
+                        type="datetime-local"
+                        class="w-full rounded border border-gray-300 p-2"
+                        name="deadLine"
+                        formControlName="deadLine"
+                    />
+                </div>
+
+                <!-- Assignment Title -->
+                <mat-form-field class="mt-3 w-full">
+                    <mat-label>Assignment Title</mat-label>
+                    <input
+                        matInput
+                        formControlName="title"
+                        placeholder="Enter Assignment Title"
+                    />
+                </mat-form-field>
+
+                <!-- Assignment Description -->
+                <mat-form-field class="mt-3 w-full">
+                    <mat-label>Description</mat-label>
+                    <textarea
+                        matInput
+                        formControlName="description"
+                        placeholder="Enter Description"
+                    ></textarea>
+                </mat-form-field>
+            </div>
+
+            <!-- Buttons -->
+            <div class="mt-4 flex justify-between">
+                <div></div>
+                <div class="mt-1 flex items-center space-x-2">
+                    <!-- Register/Update Button -->
+                    <button mat-flat-button color="primary" type="submit">
+                        {{ assignmentForm.value.id ? 'Update' : 'Register' }}
+                        Assignment
+                    </button>
+
+                    <!-- Close (Reset) Button -->
+                    <button
+                        mat-icon-button
+                        color="warn"
+                        (click)="resetForm()"
+                        aria-label="Close"
+                    >
+                        <mat-icon>close</mat-icon>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Assignments Table -->
+    <div class="p-6 shadow-lg dark:bg-gray-800">
+        <h2
+            class="mb-4 border-b pb-2 text-2xl font-semibold text-gray-700 dark:text-gray-300"
+        >
+            Registered Assignments
+        </h2>
+        <div class="overflow-x-auto">
+            <table mat-table [dataSource]="dataSource" class="min-w-full">
+                <!-- Course Column -->
+                <ng-container matColumnDef="Course">
+                    <th
+                        mat-header-cell
+                        *matHeaderCellDef
+                        class="px-4 py-2 text-left"
+                    >
+                        Course
+                    </th>
+                    <td mat-cell *matCellDef="let element" class="px-4 py-2">
+                        {{ getCourseName(element.courseId) }}
+                    </td>
+                </ng-container>
+
+                <!-- Module Column -->
+                <ng-container matColumnDef="Module">
+                    <th
+                        mat-header-cell
+                        *matHeaderCellDef
+                        class="px-4 py-2 text-left"
+                    >
+                        Module
+                    </th>
+                    <td mat-cell *matCellDef="let element" class="px-4 py-2">
+                        {{ getModuleName(element.moduleId) }}
+                    </td>
+                </ng-container>
+
+                <!-- Title Column -->
+                <ng-container matColumnDef="Title">
+                    <th
+                        mat-header-cell
+                        *matHeaderCellDef
+                        class="px-4 py-2 text-left"
+                    >
+                        Title
+                    </th>
+                    <td mat-cell *matCellDef="let element" class="px-4 py-2">
+                        {{ element.title }}
+                    </td>
+                </ng-container>
+
+                <!-- Due Date Column -->
+                <ng-container matColumnDef="DueDate">
+                    <th
+                        mat-header-cell
+                        *matHeaderCellDef
+                        class="px-4 py-2 text-left"
+                    >
+                        Due Date
+                    </th>
+                    <td mat-cell *matCellDef="let element" class="px-4 py-2">
+                        {{ element.deadLine | date: 'short' }}
+                    </td>
+                </ng-container>
+
+                <!-- Actions Column -->
+                <ng-container matColumnDef="Action">
+                    <th
+                        mat-header-cell
+                        *matHeaderCellDef
+                        class="px-4 py-2 text-left"
+                    >
+                        Actions
+                    </th>
+                    <td
+                        mat-cell
+                        *matCellDef="let element"
+                        class="flex space-x-2 px-4 py-2"
+                    >
+                        <button
+                            mat-icon-button
+                            color="accent"
+                            (click)="editAssignment(element)"
+                        >
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                        <button
+                            mat-icon-button
+                            color="warn"
+                            (click)="deleteAssignment(element)"
+                        >
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr
+                    mat-row
+                    *matRowDef="let row; columns: displayedColumns"
+                ></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <mat-paginator
+        [length]="pagination.length"
+        [pageSize]="pagination.size"
+    ></mat-paginator>
+</div>

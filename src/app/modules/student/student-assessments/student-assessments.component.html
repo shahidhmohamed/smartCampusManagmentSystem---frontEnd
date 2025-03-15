@@ -1,0 +1,52 @@
+<div class="flex min-w-0 flex-auto flex-col">
+    <!-- Main -->
+    <div class="-mt-px flex-auto border-t pt-4 sm:pt-6">
+        <div class="mx-auto w-full max-w-screen-xl">
+            <!-- Main Tabs for Courses -->
+            <mat-tab-group (selectedIndexChange)="onCourseTabChange($event)">
+                <!-- Course Tabs -->
+                <mat-tab
+                    *ngFor="let course of myCourses; let courseIndex = index"
+                    [label]="course.courseCode"
+                >
+                    <ng-template matTabContent>
+                        <!-- Semester Selection as Buttons -->
+                        <div class="flex justify-start gap-3 mt-4 px-4">
+                            <mat-button-toggle-group
+                                name="semesterGroup"
+                                appearance="standard"
+                                [(value)]="selectedSemester"
+                                (change)="onSemesterTabChange(courseIndex, $event.value)"
+                            >
+                                <mat-button-toggle
+                                    *ngFor="let semester of getSemesters(course.duration)"
+                                    [value]="'SEMESTER_' + semester"
+                                >
+                                    Semester {{ semester }}
+                                </mat-button-toggle>
+                            </mat-button-toggle-group>
+                        </div>
+
+                        <!-- Modules Display -->
+                        <div class="grid w-full overflow-hidden p-3">
+                            <div class="flex flex-col gap-2">
+                                <!-- Module Information -->
+                                <div
+                                    *ngFor="let module of modules"
+                                    class="rounded-lg bg-gray-100 p-4 shadow dark:bg-gray-800"
+                                >
+                                    <h3 class="text-lg font-semibold">
+                                        {{ module.moduleName }}
+                                    </h3>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                                        {{ module.moduleCode }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-template>
+                </mat-tab>
+            </mat-tab-group>
+        </div>
+    </div>
+</div>

@@ -5,6 +5,7 @@ export interface IModule {
   courseId?: string | null;
   lecturerId?: string | null;
   duration?: string | null;
+  semester?: string | null;
 }
 
 export type NewModule = Omit<IModule, 'id'> & { id: null };

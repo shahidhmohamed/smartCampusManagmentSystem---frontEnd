@@ -71,6 +71,18 @@
                     <mat-label>Department</mat-label>
                     <input matInput formControlName="department" required />
                 </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Semester</mat-label>
+                    <mat-select formControlName="duration" required>
+                        <mat-option
+                            *ngFor="let semester of semesters"
+                            [value]="semester.id"
+                        >
+                            {{ semester.name }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
             </div>
 
             <!-- Buttons -->

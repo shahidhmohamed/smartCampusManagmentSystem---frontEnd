@@ -75,6 +75,10 @@ export class CourseDetailsComponent implements OnInit, AfterViewInit {
         'actions',
     ];
 
+    semesters = [
+        { id: '2_SEMESTERS', name: '2_SEMESTERS' },
+        { id: '4_SEMESTERS', name: '4_SEMESTERS' },
+    ];
     pagination = {
         length: 0,
         size: 10,
@@ -95,6 +99,7 @@ export class CourseDetailsComponent implements OnInit, AfterViewInit {
             courseName: [null, Validators.required],
             courseCode: ['', Validators.required],
             department: ['', Validators.required],
+            duration: ['', Validators.required],
         });
 
         this.loadCourses();

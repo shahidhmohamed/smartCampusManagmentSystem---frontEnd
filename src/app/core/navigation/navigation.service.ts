@@ -78,6 +78,16 @@ export class NavigationService {
             if (item.id === 'student' && userRole !== 'ROLE_STUDENT') {
                 return false;
             }
+            if (
+                item.id === 'student_assignments' &&
+                userRole !== 'ROLE_STUDENT'
+            ) {
+                return false;
+            }
+
+            if (item.id === 'staff_assignments' && userRole !== 'ROLE_LECTURE') {
+                return false;
+            }
             return true;
         });
     }
