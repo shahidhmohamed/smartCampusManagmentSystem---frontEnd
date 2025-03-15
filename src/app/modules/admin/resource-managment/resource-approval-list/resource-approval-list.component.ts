@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import {
     FormBuilder,
+    FormControl,
     FormsModule,
     ReactiveFormsModule,
     UntypedFormGroup,
@@ -26,8 +27,15 @@ import { MatSelect } from '@angular/material/select';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatPaginatorModule } from '@angular/material/paginator';
+import {
+    MatPaginator,
+    MatPaginatorModule,
+    PageEvent,
+} from '@angular/material/paginator';
+import { MatTableDataSource } from '@angular/material/table';
+import { FuseConfirmationService } from '@fuse/services/confirmation';
 import { IResourceBooking } from 'app/services/resource-booking/resource-booking.model';
 import { ResourceBookingService } from 'app/services/resource-booking/service/resource-booking.service';
 import { IResource } from 'app/services/resource/resource.model';
@@ -36,7 +44,7 @@ import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import { environment } from 'environments/environment';
-import { Subject, takeUntil } from 'rxjs';
+import { Observable, Subject, map, startWith, takeUntil } from 'rxjs';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -69,19 +77,24 @@ const DATE_TIME_DISPLAY_FORMAT = 'YYYY MMMM DD, hh:mm A';
         MatDatepickerModule,
         MatPaginatorModule,
         MatButtonToggleModule,
+        MatAutocompleteModule,
     ],
     templateUrl: './resource-approval-list.component.html',
 })
 export class ResourceApprovalListComponent implements OnInit, OnDestroy {
     @ViewChild('matDrawer', { static: true }) matDrawer: MatDrawer;
+    @ViewChild(MatPaginator) private _paginator: MatPaginator;
     drawerMode: 'side' | 'over' = 'side';
 
     campusResourceBookings: IResourceBooking[] = [];
     campusResources: IResource[] = [];
+    resourceControl = new FormControl();
+    filteredResource$: Observable<IResource[]>;
     selectedResourceBooking: IResourceBooking | null = null;
     selectedResourceBookingForm: UntypedFormGroup;
     isAddingNew: boolean = false;
     searchInputControl: '';
+    dataSource = new MatTableDataSource<any>();
 
     pagination = {
         length: 0,
@@ -95,7 +108,8 @@ export class ResourceApprovalListComponent implements OnInit, OnDestroy {
         private _ResourceBookingService: ResourceBookingService,
         private _changeDetectorRef: ChangeDetectorRef,
         private _resourceService: ResourceService,
-        private _formBuilder: FormBuilder
+        private _formBuilder: FormBuilder,
+        private _fuseConfirmationService: FuseConfirmationService
     ) {}
 
     ngOnInit(): void {
@@ -111,9 +125,25 @@ export class ResourceApprovalListComponent implements OnInit, OnDestroy {
             adminComment: [''],
         });
 
+        this.filteredResource$ = this.resourceControl.valueChanges.pipe(
+            startWith(''),
+            map((value) =>
+                typeof value === 'string' ? value : value?.name || ''
+            ),
+            map((name) => this.filterResource(name))
+        );
+
         // Load resources and bookings
         this.getAllCampusResources();
         this.getAllCampusResourcesBookList();
+    }
+
+    ngAfterViewInit(): void {
+        this.dataSource.paginator = this._paginator;
+        // this._paginator.page.subscribe(() => {
+        //     this.pagination.page = this._paginator.pageIndex;
+        //     this.searchProduct();
+        // });
     }
 
     ngOnDestroy(): void {
@@ -123,12 +153,20 @@ export class ResourceApprovalListComponent implements OnInit, OnDestroy {
 
     /** Fetch all booked resources */
     getAllCampusResourcesBookList() {
+        const params = {
+            page: this.pagination.page,
+            size: this.pagination.size,
+        };
         this._ResourceBookingService
-            .query()
+            .query(params)
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((response) => {
                 this.campusResourceBookings = response.body || [];
                 this.pagination.length = this.campusResourceBookings.length;
+                this.dataSource = new MatTableDataSource(
+                    this.campusResourceBookings
+                );
+                console.log(this.dataSource.filteredData);
                 this._changeDetectorRef.detectChanges();
             });
     }
@@ -140,16 +178,54 @@ export class ResourceApprovalListComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((response) => {
                 this.campusResources = response.body || [];
+                // this.filteredResource = this.campusResources.filter(
+                //     (res) => res.availability === true
+                // );
                 this._changeDetectorRef.detectChanges();
             });
     }
 
+    getResourceName(resourceId: string): string {
+        const resource = this.campusResources.find(
+            (res) => res.id === resourceId
+        );
+        return resource ? resource.name : 'Unknown Resource';
+    }
+
+    filterResource(name: string): IResource[] {
+        const filterValue = name.toLowerCase();
+
+        return this.campusResources
+            .filter((resource) => resource.availability)
+            .filter(
+                (resource) =>
+                    resource.name?.toLowerCase().includes(filterValue) ||
+                    resource.resourceType?.toLowerCase().includes(filterValue)
+            );
+    }
+
+    onResourceSelect(event: any) {
+        const selectedResource: IResource = event.option.value;
+        if (selectedResource) {
+            this.selectedResourceBookingForm.patchValue({
+                resource: selectedResource.id,
+            });
+        }
+        this._changeDetectorRef.detectChanges();
+    }
+
+    displayResource(resource: IResource | null): string {
+        return resource
+            ? `${resource.name} ${resource.resourceType || ''}`
+            : '';
+    }
     /** Open drawer for adding a new booking */
     openAddBookingDrawer(): void {
         this.isAddingNew = true;
         this.selectedResourceBooking = null;
         this.selectedResourceBookingForm.reset();
         this.matDrawer.open();
+        this._changeDetectorRef.detectChanges();
     }
 
     /** Open booking details in drawer */
@@ -171,6 +247,7 @@ export class ResourceApprovalListComponent implements OnInit, OnDestroy {
                 }
 
                 this.matDrawer.open();
+                this._changeDetectorRef.detectChanges();
             });
     }
 
@@ -181,11 +258,21 @@ export class ResourceApprovalListComponent implements OnInit, OnDestroy {
         }
 
         let bookingData = { ...this.selectedResourceBookingForm.value };
+        // alert(JSON.stringify(environment.user));
+        bookingData.userId = environment.user.name;
 
-        // Convert `resource` from ID to object format
-        bookingData.resource = bookingData.resource
-            ? { id: bookingData.resource }
-            : null;
+        // Ensure resource is an object with an id
+        if (bookingData.resource) {
+            bookingData.resource = {
+                id: bookingData.resource,
+                // name: bookingData.resource.name,
+                // resourceType: bookingData.resource.resourceType,
+            };
+        } else {
+            bookingData.resource = { userId: environment.user.name };
+        }
+
+        console.log('Final bookingData:', bookingData);
 
         if (this.isAddingNew) {
             this._ResourceBookingService
@@ -204,21 +291,45 @@ export class ResourceApprovalListComponent implements OnInit, OnDestroy {
                     this.matDrawer.close();
                 });
         }
+        this._changeDetectorRef.detectChanges();
     }
 
     /** Delete a booking */
     deleteResourceBooking(bookingId: string, event: Event): void {
         event.stopPropagation();
-        this._ResourceBookingService
-            .delete(bookingId)
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe(() => {
-                this.getAllCampusResourcesBookList();
-            });
-    }
+        const confirmation = this._fuseConfirmationService.open({
+            title: 'Delete Booking',
+            message:
+                'Are you sure you want to delete this Booking? This action is irreversible.',
+            actions: {
+                confirm: {
+                    label: 'Delete',
+                },
+            },
+        });
 
+        confirmation.afterClosed().subscribe((result) => {
+            if (result === 'confirmed') {
+                this._ResourceBookingService
+                    .delete(bookingId)
+                    .pipe(takeUntil(this._unsubscribeAll))
+                    .subscribe(() => {
+                        this.getAllCampusResourcesBookList();
+                    });
+            }
+            this._changeDetectorRef.detectChanges();
+        });
+    }
     /** Optimize rendering with trackBy */
     trackByFn(index: number, item: IResourceBooking): string {
         return item.id;
+    }
+
+    handlePageEvent(event: PageEvent) {
+        this.pagination.page = event.pageIndex;
+        this.pagination.size = event.pageSize;
+
+        this.getAllCampusResourcesBookList();
+        this._changeDetectorRef.detectChanges();
     }
 }

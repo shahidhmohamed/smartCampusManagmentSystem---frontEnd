@@ -12,68 +12,88 @@
                 Add Resource Booking
             </h2>
             <h2 class="text-xl font-bold" *ngIf="!isAddingNew">
-                {{ selectedResourceBooking?.resource?.id }}
+                {{
+                    getResourceName(
+                        selectedResourceBookingForm.get('resource')?.value
+                    )
+                }}
             </h2>
 
             <form [formGroup]="selectedResourceBookingForm">
                 <!-- Resource -->
-                <mat-form-field class="w-full">
-                    <mat-label>Resource</mat-label>
-                    <mat-select formControlName="resource" required>
+
+                <mat-form-field class="mt-3 w-full" *ngIf="isAddingNew">
+                    <mat-label>Select Resource</mat-label>
+                    <input
+                        type="text"
+                        matInput
+                        [formControl]="resourceControl"
+                        [matAutocomplete]="auto"
+                        placeholder="Type to find"
+                    />
+                    <mat-autocomplete
+                        #auto="matAutocomplete"
+                        [displayWith]="displayResource"
+                        (optionSelected)="onResourceSelect($event)"
+                    >
                         <mat-option
-                            *ngFor="let res of campusResources"
-                            [value]="res.id"
+                            *ngFor="let resource of filteredResource$ | async"
+                            [value]="resource"
                         >
-                            {{ res.name }} ({{ res.resourceType }})
+                            {{ resource.name }} ({{ resource.resourceType }})
                         </mat-option>
-                    </mat-select>
+                    </mat-autocomplete>
                 </mat-form-field>
 
-                <!-- User ID -->
-                <!-- <mat-form-field class="w-full">
-                    <mat-label>User ID</mat-label>
-                    <input matInput formControlName="userId" required />
-                </mat-form-field> -->
+                <mat-form-field class="mt-3 w-full" *ngIf="!isAddingNew">
+                    <mat-label>Resource</mat-label>
+                    <input
+                        matInput
+                        [value]="
+                            getResourceName(
+                                selectedResourceBookingForm.get('resource')
+                                    ?.value
+                            )
+                        "
+                        readonly
+                    />
+                </mat-form-field>
 
-                <!-- Start Time -->
-                <div class="mb-3">
-                    <label class="form-label" for="field_startTime"
-                        >Start Time</label
-                    >
-                    <div class="d-flex">
-                        <input
-                            id="field_startTime"
-                            data-cy="startTime"
-                            type="datetime-local"
-                            class="form-control"
-                            name="startTime"
-                            formControlName="startTime"
-                            placeholder="YYYY-MM-DD HH:mm"
-                        />
+                <div class="flex gap-3">
+                    <!-- Start Time -->
+                    <div class="mb-3">
+                        <label class="form-label" for="field_startTime"
+                            >Start Time</label
+                        >
+                        <div class="d-flex">
+                            <input
+                                id="field_startTime"
+                                data-cy="startTime"
+                                type="datetime-local"
+                                class="form-control"
+                                name="startTime"
+                                formControlName="startTime"
+                                placeholder="YYYY-MM-DD HH:mm"
+                            />
+                        </div>
                     </div>
-                </div>
-                <!-- <mat-form-field class="w-full">
-                    <mat-label>Start Time</mat-label>
-                    <input matInput [matDatepicker]="startPicker" formControlName="startTime" required />
-                    <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
-                    <mat-datepicker #startPicker></mat-datepicker>
-                </mat-form-field> -->
 
-                <!-- End Time -->
-                <div class="mb-3">
-                    <label class="form-label" for="field_endTime"
-                        >End Time</label
-                    >
-                    <div class="d-flex">
-                        <input
-                            id="field_endTime"
-                            data-cy="endTime"
-                            type="datetime-local"
-                            class="form-control"
-                            name="endTime"
-                            formControlName="endTime"
-                            placeholder="YYYY-MM-DD HH:mm"
-                        />
+                    <!-- End Time -->
+                    <div class="mb-3">
+                        <label class="form-label" for="field_endTime"
+                            >End Time</label
+                        >
+                        <div class="d-flex">
+                            <input
+                                id="field_endTime"
+                                data-cy="endTime"
+                                type="datetime-local"
+                                class="form-control"
+                                name="endTime"
+                                formControlName="endTime"
+                                placeholder="YYYY-MM-DD HH:mm"
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -139,7 +159,7 @@
                     </div>
                 </div>
                 <div class="mt-6 flex shrink-0 items-center sm:ml-4 sm:mt-0">
-                    <mat-form-field
+                    <!-- <mat-form-field
                         class="fuse-mat-dense fuse-mat-rounded min-w-64"
                         [subscriptSizing]="'dynamic'"
                     >
@@ -154,7 +174,7 @@
                             autocomplete="off"
                             placeholder="Search Booking"
                         />
-                    </mat-form-field>
+                    </mat-form-field> -->
                     <button
                         mat-flat-button
                         class="ml-4"
@@ -168,59 +188,107 @@
             </div>
 
             <!-- Resource Booking List -->
-            <div *ngIf="campusResourceBookings.length > 0" class="divide-y">
+            <div
+                *ngIf="campusResourceBookings.length > 0"
+                class="grid grid-cols-1 space-y-2 sm:grid-cols-2 lg:grid-cols-3"
+            >
                 <div
                     *ngFor="
-                        let booking of campusResourceBookings;
+                        let booking of dataSource.filteredData;
+                        let i = index;
                         trackBy: trackByFn
                     "
-                    class="group w-full select-none dark:hover:bg-hover hover:bg-gray-100"
+                    class="group w-full select-none border-l-4 border-black dark:hover:bg-hover hover:bg-gray-100"
+                    [ngClass]="{ 'border-l-0': i % 3 === 0 }"
                     (click)="toggleBookingDetails(booking.id)"
                 >
-                    <div class="relative flex h-full items-center pl-10">
-                        <div class="mr-2 flex-auto truncate p-2">
-                            <span class="text-lg font-bold">{{
-                                booking.resource?.id
-                            }}</span>
-                            <div class="text-secondary text-sm">
-                                User: {{ booking.userId }}
+                    <div class="relative flex h-full items-center p-4">
+                        <!-- Left Side: Resource Information -->
+                        <div class="flex-auto p-2">
+                            <span
+                                class="mb-1 block text-xl font-bold text-gray-800"
+                            >
+                                {{ getResourceName(booking.resource?.id) }}
+                            </span>
+
+                            <div
+                                class="flex items-center gap-2 text-sm text-gray-600"
+                            >
+                                <mat-icon
+                                    svgIcon="person"
+                                    class="text-gray-500"
+                                ></mat-icon>
+                                <span>User: {{ booking.userId }}</span>
                             </div>
-                            <div class="text-secondary text-sm">
-                                Start:
-                                {{ booking.startTime }}
+
+                            <div
+                                class="flex items-center gap-2 text-sm text-gray-600"
+                            >
+                                <mat-icon
+                                    svgIcon="schedule"
+                                    class="text-gray-500"
+                                ></mat-icon>
+                                <span
+                                    >Start:
+                                    {{
+                                        booking.startTime
+                                            | date: 'yyyy-MM-dd HH:mm'
+                                    }}</span
+                                >
                             </div>
-                            <div class="text-secondary text-sm">
-                                End:
-                                {{ booking.endTime }}
+
+                            <div
+                                class="flex items-center gap-2 text-sm text-gray-600"
+                            >
+                                <mat-icon
+                                    svgIcon="event"
+                                    class="text-gray-500"
+                                ></mat-icon>
+                                <span
+                                    >End:
+                                    {{
+                                        booking.endTime
+                                            | date: 'yyyy-MM-dd HH:mm'
+                                    }}</span
+                                >
                             </div>
-                            <div class="text-secondary text-sm">
-                                Status:
+
+                            <div
+                                class="flex items-center gap-2 text-sm font-medium"
+                            >
+                                <mat-icon
+                                    svgIcon="info"
+                                    class="text-gray-500"
+                                ></mat-icon>
+                                <span>Status:</span>
                                 <span
                                     [ngClass]="{
-                                        'text-green-600':
+                                        'rounded-md bg-green-100 px-2 py-1 text-green-600':
                                             booking.status === 'APPROVED',
-                                        'text-yellow-600':
+                                        'rounded-md bg-yellow-100 px-2 py-1 text-yellow-600':
                                             booking.status === 'PENDING',
-                                        'text-red-600':
+                                        'rounded-md bg-red-100 px-2 py-1 text-red-600':
                                             booking.status === 'REJECTED',
                                     }"
-                                    >{{ booking.status }}</span
                                 >
+                                    {{ booking.status }}
+                                </span>
                             </div>
                         </div>
 
-                        <div
-                            class="group relative flex h-full items-center pl-10"
-                        >
-                            <div
-                                class="absolute right-0 flex w-8 items-center justify-center opacity-0 transition-opacity group-hover:opacity-100"
+                        <!-- Right Side: Delete Button -->
+                        <div class="relative flex h-full items-center">
+                            <button
+                                class="text-red-500 opacity-0 transition-opacity hover:text-red-700 group-hover:opacity-100"
+                                (click)="
+                                    deleteResourceBooking(booking.id, $event)
+                                "
                             >
                                 <mat-icon
                                     svgIcon="delete"
-                                    (click)="deleteBooking(booking.id, $event)"
-                                    class="cursor-pointer text-red-500"
+                                    class="cursor-pointer text-xl"
                                 ></mat-icon>
-                            </div>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -232,7 +300,7 @@
                     !campusResourceBookings ||
                     campusResourceBookings.length === 0
                 "
-                class="flex flex-auto flex-col items-center justify-center bg-gray-100 dark:bg-transparent"
+                class="flex flex-auto flex-col items-center justify-center bg-gray-200 dark:bg-transparent"
             >
                 <mat-icon
                     class="icon-size-24"
@@ -243,6 +311,18 @@
                 >
                     No Bookings Available
                 </div>
+            </div>
+
+            <div>
+                <mat-paginator
+                    class="z-10 border-b bg-gray-50 dark:bg-transparent sm:absolute sm:inset-x-0 sm:bottom-0 sm:border-b-0 sm:border-t"
+                    [length]="pagination.length"
+                    [pageIndex]="pagination.page"
+                    [pageSize]="pagination.size"
+                    [pageSizeOptions]="[1, 5, 10, 25, 100]"
+                    [showFirstLastButtons]="true"
+                    (page)="handlePageEvent($event)"
+                ></mat-paginator>
             </div>
         </div>
     </mat-drawer-content>

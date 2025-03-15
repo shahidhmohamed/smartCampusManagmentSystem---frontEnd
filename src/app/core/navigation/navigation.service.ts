@@ -62,6 +62,11 @@ export class NavigationService {
                 userRole !== 'ROLE_ADMIN'
             )
                 return false;
+            if (item.id === 'course_management' && userRole !== 'ROLE_ADMIN')
+                return false;
+
+            if (item.id === 'admin_class_schedule' && userRole !== 'ROLE_ADMIN')
+                return false;
 
             if (item.id === 'admin_file_manager' && userRole !== 'ROLE_ADMIN')
                 return false;

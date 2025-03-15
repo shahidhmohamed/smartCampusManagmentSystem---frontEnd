@@ -1,4 +1,4 @@
-<mat-drawer-container class="bg-card h-full flex-auto dark:bg-transparent">
+<mat-drawer-container class="bg-card h-screen flex-auto dark:bg-transparent">
     <!-- Drawer -->
     <mat-drawer
         class="w-full dark:bg-gray-900 sm:w-128"
@@ -97,10 +97,18 @@
                 class="flex flex-col items-start px-6 py-8 sm:flex-row sm:items-center sm:justify-between md:px-8"
             >
                 <div>
-                    <div
-                        class="text-4xl font-extrabold leading-none tracking-tight"
-                    >
-                        Events
+                    <div class="flex gap-2">
+                        <div
+                            class="text-4xl font-extrabold leading-none tracking-tight"
+                        >
+                            Events
+                        </div>
+                        <!-- <button mat-button (click)="toggleView()">
+                            <mat-icon>{{
+                                showCalendar ? 'list' : 'calendar_today'
+                            }}</mat-icon>
+                            {{ showCalendar ? 'Show List' : 'Show Calendar' }}
+                        </button> -->
                     </div>
                     <div class="text-secondary ml-0.5 mt-2 font-medium">
                         <span>All Events {{ campusEvent.length }}!</span>
@@ -135,81 +143,89 @@
                 </div>
             </div>
 
-            <!-- Event List -->
-            <div
-                *ngIf="campusEvent && campusEvent.length > 0"
-                class="divide-y"
-                cdkDropList
-                [cdkDropListData]="campusEvent"
-                (cdkDropListDropped)="dropped($event)"
-            >
+            <div class="flex gap-3">
+                <div class="h-140 w-160 p-6">
+                    <full-calendar [options]="calendarOptions"></full-calendar>
+                </div>
+
+                <!-- Event List -->
                 <div
-                    *ngFor="let event of campusEvent; trackBy: trackByFn"
-                    class="group w-full select-none dark:hover:bg-hover hover:bg-gray-100"
-                    (click)="toggleDetails(event.id)"
-                    cdkDrag
-                    [cdkDragLockAxis]="'y'"
+                    *ngIf="campusEvent && campusEvent.length > 0"
+                    class="divide-y mt-20"
+                    cdkDropList
+                    [cdkDropListData]="campusEvent"
+                    (cdkDropListDropped)="dropped($event)"
                 >
-                    <div class="relative flex h-full items-center pl-10">
-                        <div
-                            *ngIf="selectedTask?.id === event.id"
-                            class="absolute -bottom-px -top-px right-0 z-10 flex w-1 flex-0 bg-primary"
-                        ></div>
+                    <div
+                        *ngFor="let event of campusEvent; trackBy: trackByFn"
+                        class="group w-full select-none dark:hover:bg-hover hover:bg-gray-100 "
+                        (click)="toggleDetails(event.id)"
+                        cdkDrag
+                        [cdkDragLockAxis]="'y'"
+                    >
+                        <div class="relative flex h-full items-center pl-10">
+                            <div
+                                *ngIf="selectedTask?.id === event.id"
+                                class="absolute -bottom-px -top-px right-0 z-10 flex w-1 flex-0 bg-primary"
+                            ></div>
 
-                        <div
-                            class="absolute inset-y-0 left-0 flex w-8 cursor-move items-center justify-center md:hidden md:group-hover:flex"
-                            cdkDragHandle
-                        >
-                            <mat-icon
-                                class="text-hint icon-size-5"
-                                svgIcon="heroicons_solid:bars-3"
-                            ></mat-icon>
-                        </div>
+                            <div
+                                class="absolute inset-y-0 left-0 flex w-8 cursor-move items-center justify-center md:hidden md:group-hover:flex"
+                                cdkDragHandle
+                            >
+                                <mat-icon
+                                    class="text-hint icon-size-5"
+                                    svgIcon="heroicons_solid:bars-3"
+                                ></mat-icon>
+                            </div>
 
-                        <div
-                            class="flex h-full min-w-0 flex-auto items-center pr-7"
-                        >
-                            <div class="mr-2 flex-auto truncate p-2">
-                                <span
-                                    class="text-lg font-bold"
-                                    *ngIf="event.eventName"
-                                    >{{ event.eventName }}</span
-                                >
-                                <span
-                                    *ngIf="!event.eventName"
-                                    class="text-hint select-none"
-                                    >Untitled event</span
-                                >
-                                <div
-                                    class="text-secondary mr-2 items-center pr-7 text-sm"
-                                    *ngIf="event.status"
-                                >
-                                    {{ event.status }}
+                            <div
+                                class="flex h-full min-w-0 flex-auto items-center pr-7"
+                            >
+                                <div class="mr-2 flex-auto truncate p-2">
+                                    <span
+                                        class="text-lg font-bold"
+                                        *ngIf="event.eventName"
+                                        >{{ event.eventName }}</span
+                                    >
+                                    <span
+                                        *ngIf="!event.eventName"
+                                        class="text-hint select-none"
+                                        >Untitled event</span
+                                    >
+                                    <div
+                                        class="text-secondary mr-2 items-center pr-7 text-sm"
+                                        *ngIf="event.status"
+                                    >
+                                        {{ event.status }}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div
-                                class="text-secondary whitespace-nowrap text-sm"
-                                *ngIf="event.eventDate"
-                            >
-                                {{
-                                    event.eventDate
-                                        | date: 'MMM dd, yyyy hh:mm a'
-                                }}
-                            </div>
-                            <div
-                                class="group relative flex h-full items-center pl-10"
-                                (click)="toggleDetails(event.id)"
-                            >
-                                <!-- Delete Button -->
                                 <div
-                                    class="absolute right-0 flex w-8 items-center justify-center opacity-0 transition-opacity group-hover:opacity-100"
+                                    class="text-secondary whitespace-nowrap text-sm pl-16"
+                                    *ngIf="event.eventDate"
                                 >
-                                    <mat-icon
-                                        svgIcon="delete"
-                                        (click)="deleteTask(event.id, $event)"
-                                        class="cursor-pointer text-red-500"
-                                    ></mat-icon>
+                                    {{
+                                        event.eventDate
+                                            | date: 'MMM dd, yyyy hh:mm a'
+                                    }}
+                                </div>
+                                <div
+                                    class="group relative flex h-full items-center pl-10"
+                                    (click)="toggleDetails(event.id)"
+                                >
+                                    <!-- Delete Button -->
+                                    <div
+                                        class="absolute right-0 flex w-8 items-center justify-center opacity-0 transition-opacity group-hover:opacity-100"
+                                    >
+                                        <mat-icon
+                                            svgIcon="delete"
+                                            (click)="
+                                                deleteTask(event.id, $event)
+                                            "
+                                            class="cursor-pointer text-red-500"
+                                        ></mat-icon>
+                                    </div>
                                 </div>
                             </div>
                         </div>

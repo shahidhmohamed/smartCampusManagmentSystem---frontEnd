@@ -1,0 +1,310 @@
+<div class="bg-card h-full flex-auto dark:bg-transparent">
+    <div class="flex flex-auto flex-col overflow-hidden p-6 sm:col-span-6">
+        <!-- Header -->
+        <div class="flex w-full justify-between">
+            <div class="items-center">
+                <span class="text-4xl font-bold"> Class Schedule </span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <!-- Search Input -->
+                <mat-form-field
+                    class="fuse-mat-dense fuse-mat-rounded min-w-64"
+                    [subscriptSizing]="'dynamic'"
+                >
+                    <mat-icon
+                        class="icon-size-5"
+                        matPrefix
+                        svgIcon="heroicons_solid:magnifying-glass"
+                    ></mat-icon>
+                    <input
+                        matInput
+                        [formControl]="searchText"
+                        autocomplete="off"
+                        placeholder="Search Schedule"
+                    />
+                </mat-form-field>
+
+                <!-- Toggle Form Button -->
+                <button
+                    *ngIf="!createForm"
+                    mat-flat-button
+                    color="warn"
+                    type="button"
+                    (click)="toggleForm()"
+                >
+                    New
+                </button>
+                <button
+                    *ngIf="createForm"
+                    mat-flat-button
+                    color="warn"
+                    type="button"
+                    (click)="toggleForm()"
+                >
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- Class Schedule Form -->
+        <form
+            [formGroup]="scheduleForm"
+            (ngSubmit)="saveSchedule()"
+            *ngIf="createForm"
+        >
+            <div class="grid grid-cols-3 gap-4">
+                <!-- Select Course -->
+                <mat-form-field class="mt-3 w-full">
+                    <mat-label>Select Course</mat-label>
+                    <input
+                        type="text"
+                        matInput
+                        [formControl]="coursesControl"
+                        [matAutocomplete]="autoCourse"
+                        placeholder="Type to find course"
+                    />
+                    <mat-autocomplete
+                        #autoCourse="matAutocomplete"
+                        [displayWith]="displayCourseName"
+                        (optionSelected)="onSelectCourse($event)"
+                    >
+                        <mat-option
+                            *ngFor="let course of filteredCourses$ | async"
+                            [value]="course"
+                        >
+                            {{ course.courseCode }} ({{ course.courseName }})
+                        </mat-option>
+                    </mat-autocomplete>
+                </mat-form-field>
+
+                <!-- Select Module -->
+                <mat-form-field class="mt-3 w-full">
+                    <mat-label>Select Module</mat-label>
+                    <mat-select formControlName="moduleId">
+                        <mat-option
+                            *ngFor="let module of modules"
+                            [value]="module.id"
+                        >
+                            {{ module.moduleName }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <!-- Select Instructor -->
+                <mat-form-field class="mt-3 w-full">
+                    <mat-label>Select Instructor</mat-label>
+                    <input
+                        type="text"
+                        matInput
+                        [formControl]="instructorControl"
+                        [matAutocomplete]="autoInstructor"
+                        placeholder="Type to find instructor"
+                    />
+                    <mat-autocomplete
+                        #autoInstructor="matAutocomplete"
+                        [displayWith]="displayInstructorName"
+                        (optionSelected)="onSelectInstructor($event)"
+                    >
+                        <mat-option
+                            *ngFor="
+                                let instructor of filteredinstructor$ | async
+                            "
+                            [value]="instructor"
+                        >
+                            {{ instructor.firstName }} {{ instructor.lastName }}
+                        </mat-option>
+                    </mat-autocomplete>
+                </mat-form-field>
+            </div>
+
+            <div class="mt-3 grid grid-cols-3 gap-4">
+                <!-- Location -->
+                <mat-form-field class="mt-3 w-full">
+                    <mat-label>Location</mat-label>
+                    <input
+                        type="text"
+                        matInput
+                        [formControl]="resourceControl"
+                        [matAutocomplete]="auto"
+                        placeholder="Type to find"
+                    />
+                    <mat-autocomplete
+                        #auto="matAutocomplete"
+                        [displayWith]="displayResource"
+                        (optionSelected)="onResourceSelect($event)"
+                    >
+                        <mat-option
+                            *ngFor="let resource of filteredResource$ | async"
+                            [value]="resource"
+                        >
+                            {{ resource.name }} ({{ resource.resourceType }})
+                        </mat-option>
+                    </mat-autocomplete>
+                </mat-form-field>
+
+                <!-- Schedule Date -->
+                <div class="mb-3 flex flex-col items-center">
+                    <label class="form-label" for="field_eventDate"
+                        >Schedule Date</label
+                    >
+                    <input
+                        id="field_eventDate"
+                        type="date"
+                        class="form-control"
+                        name="scheduleDate"
+                        formControlName="scheduleDate"
+                    />
+                </div>
+
+                <!-- Schedule Time (Start & End) -->
+                <div class="mb-3 flex items-center justify-center gap-6">
+                    <div class="text-center">
+                        <label class="form-label block" for="field_starttime"
+                            >Start Time</label
+                        >
+                        <input
+                            id="field_starttime"
+                            type="time"
+                            class="form-control text-center"
+                            name="scheduleTimeFrom"
+                            formControlName="scheduleTimeFrom"
+                        />
+                    </div>
+                    <div class="text-center">
+                        <label class="form-label block" for="field_endtime"
+                            >End Time</label
+                        >
+                        <input
+                            id="field_endtime"
+                            type="time"
+                            class="form-control text-center"
+                            name="scheduleTimeTo"
+                            formControlName="scheduleTimeTo"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="mt-4 flex justify-between">
+                <div></div>
+                <div class="mt-1 flex items-center space-x-2">
+                    <!-- Save Button -->
+                    <button mat-flat-button color="primary" type="submit">
+                        {{ scheduleForm.value.id ? 'Update' : 'Schedule' }}
+                        Class
+                    </button>
+
+                    <!-- Close (Reset) Button -->
+                    <button
+                        mat-icon-button
+                        color="warn"
+                        (click)="resetForm()"
+                        aria-label="Close"
+                    >
+                        <mat-icon>close</mat-icon>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Scheduled Classes Table -->
+    <div class="p-6 shadow-lg dark:bg-gray-800">
+        <h2
+            class="mb-4 border-b pb-2 text-2xl font-semibold text-gray-700 dark:text-gray-300"
+        >
+            Scheduled Classes
+        </h2>
+        <div class="max-h-[500px] overflow-auto">
+            <table mat-table [dataSource]="dataSource" class="min-w-full">
+                <!-- Table Headers and Data -->
+                <ng-container matColumnDef="course">
+                    <th mat-header-cell *matHeaderCellDef>Course</th>
+                    <td mat-cell *matCellDef="let element">
+                        {{ getCourseName(element.courseId) }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="module">
+                    <th mat-header-cell *matHeaderCellDef>Module</th>
+                    <td mat-cell *matCellDef="let element">
+                        {{ getModuleName(element.moduleId) }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="instructor">
+                    <th mat-header-cell *matHeaderCellDef>Instructor</th>
+                    <td mat-cell *matCellDef="let element">
+                        {{ getInstructorName(element.instructorId) }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="scheduleDate">
+                    <th mat-header-cell *matHeaderCellDef>Schedule Date</th>
+                    <td mat-cell *matCellDef="let element">
+                        {{ element.scheduleDate | date: 'mediumDate' }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="scheduleDateFrom">
+                    <th mat-header-cell *matHeaderCellDef>Start Time</th>
+                    <td mat-cell *matCellDef="let element">
+                        {{ element.scheduleTimeFrom }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="scheduleDateTo">
+                    <th mat-header-cell *matHeaderCellDef>End Time</th>
+                    <td mat-cell *matCellDef="let element">
+                        {{ element.scheduleTimeTo }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="location">
+                    <th mat-header-cell *matHeaderCellDef>location</th>
+                    <td mat-cell *matCellDef="let element">
+                        <!-- {{ element.location }} -->
+                        {{ getLocationName(element.location) }}
+                    </td>
+                </ng-container>
+
+                <!-- Action Column -->
+                <ng-container matColumnDef="Action">
+                    <th mat-header-cell *matHeaderCellDef>Actions</th>
+                    <td
+                        mat-cell
+                        *matCellDef="let element"
+                        class="flex items-center justify-center space-x-2 px-4 py-2"
+                    >
+                        <button
+                            mat-icon-button
+                            color="accent"
+                            (click)="editSchedule(element)"
+                        >
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                        <button
+                            mat-icon-button
+                            color="warn"
+                            (click)="deleteSchedule(element)"
+                        >
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr
+                    mat-row
+                    *matRowDef="let row; columns: displayedColumns"
+                ></tr>
+            </table>
+        </div>
+    </div>
+
+    <mat-paginator
+        [length]="pagination.length"
+        [pageSize]="pagination.size"
+    ></mat-paginator>
+</div>

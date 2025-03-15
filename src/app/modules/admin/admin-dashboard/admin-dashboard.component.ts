@@ -13,6 +13,7 @@ import { CampusEventService } from 'app/services/campus-event/service/campus-eve
 import { ResourceType } from 'app/services/enumerations/resource-type.model';
 import { IResource } from 'app/services/resource/resource.model';
 import { ResourceService } from 'app/services/resource/service/resource.service';
+import { IUser } from 'app/services/user/service/user-management.model';
 import { environment } from 'environments/environment';
 
 @Component({
@@ -35,7 +36,7 @@ import { environment } from 'environments/environment';
     styleUrl: './admin-dashboard.component.scss',
 })
 export class AdminDashboardComponent implements OnInit {
-    user = environment.user;
+    user: IUser = environment.user;
     allEvents = 0;
     selectedProject: string = 'ACME Corp. Backend App';
     statusCounts = {};
@@ -114,6 +115,7 @@ export class AdminDashboardComponent implements OnInit {
         this.user = environment.user;
         this.getAllCampusEvent();
         this.getAllCampusResources();
+        this._changeDetectorRef.detectChanges();
     }
 
     onResourceCardClick(resourceName: string) {

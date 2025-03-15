@@ -7,6 +7,7 @@ import {
 } from '@angular/cdk/drag-drop';
 import { CommonModule, DatePipe } from '@angular/common';
 import {
+    CUSTOM_ELEMENTS_SCHEMA,
     ChangeDetectionStrategy,
     ChangeDetectorRef,
     Component,
@@ -40,6 +41,9 @@ import { CampusEventService } from 'app/services/campus-event/service/campus-eve
 import { environment } from 'environments/environment';
 import { Subject, takeUntil } from 'rxjs';
 
+import { FullCalendarModule } from '@fullcalendar/angular';
+import { CalendarOptions } from '@fullcalendar/core';
+import dayGridPlugin from '@fullcalendar/daygrid';
 import { GenericPagination } from 'app/models/GenericPagination';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
@@ -77,7 +81,9 @@ const DATE_TIME_DISPLAY_FORMAT = 'YYYY MMMM DD, hh:mm A';
         MatSelect,
         MatOptionModule,
         MatDatepickerModule,
+        FullCalendarModule,
     ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class TasksListComponent implements OnInit, OnDestroy {
     @ViewChild('matDrawer', { static: true }) matDrawer: MatDrawer;
@@ -95,6 +101,11 @@ export class TasksListComponent implements OnInit, OnDestroy {
         lastPage: 0,
         startIndex: 0,
         endIndex: 0,
+    };
+    calendarOptions: CalendarOptions = {
+        initialView: 'dayGridMonth',
+        plugins: [dayGridPlugin],
+        events: [],
     };
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
@@ -143,14 +154,38 @@ export class TasksListComponent implements OnInit, OnDestroy {
         this._unsubscribeAll.complete();
     }
 
-    getAllCampusEvent() {
+    getAllCampusEvent(): void {
         this._adminEventService
             .getAllItems()
             .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((response: ICampusEvent[]) => {
-                this.campusEvent = response;
-                environment.allevents = response.length;
-                this._changeDetectorRef.detectChanges();
+            .subscribe({
+                next: (response: any[]) => {
+                    this.campusEvent = response;
+                    environment.allevents = response.length;
+
+                    this.calendarOptions.events = response
+                        .map((event) => {
+                            const eventDate = new Date(event.eventDate);
+                            if (isNaN(eventDate.getTime())) {
+                                console.error(
+                                    'Invalid date format for event:',
+                                    event
+                                );
+                                return null;
+                            }
+                            return {
+                                title: event.eventName,
+                                start: eventDate,
+                                color: '#3f51b5',
+                                allDay: true,
+                            };
+                        })
+                        .filter((event) => event !== null);
+                    this._changeDetectorRef.detectChanges();
+                },
+                error: (error) => {
+                    console.error('Failed to fetch campus events:', error);
+                },
             });
     }
 

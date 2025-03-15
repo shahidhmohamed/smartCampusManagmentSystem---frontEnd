@@ -103,12 +103,19 @@ export const defaultNavigation: FuseNavigationItem[] = [
         icon: 'heroicons_outline:check-circle',
         link: '/admin/events',
     },
+    // {
+    //     id: 'admin_resource_booking',
+    //     title: 'Resource Booking',
+    //     type: 'basic',
+    //     icon: 'heroicons_outline:calendar',
+    //     link: '/admin/resource-management-bookings',
+    // },
     {
         id: 'admin_resource_booking',
         title: 'Resource Booking',
         type: 'basic',
         icon: 'heroicons_outline:calendar',
-        link: '/admin/resource-management-bookings',
+        link: '/admin/resource-management-bookings-approval',
     },
     {
         id: 'admin_user_management',
@@ -124,12 +131,35 @@ export const defaultNavigation: FuseNavigationItem[] = [
         icon: 'heroicons_outline:cloud',
         link: '/admin/file-manager-2',
     },
+
     {
-        id: 'cource_manament',
+        id: 'course_management',
         title: 'Course Management',
+        type: 'collapsable',
+        icon: 'heroicons_outline:book-open',
+        children: [
+            {
+                id: 'all_courses',
+                title: 'Courses',
+                type: 'basic',
+                icon: 'heroicons_outline:academic-cap',
+                link: '/admin/all-course',
+            },
+            {
+                id: 'course_registration',
+                title: 'Course Registration',
+                type: 'basic',
+                icon: 'heroicons_outline:document-text',
+                link: '/admin/course-register',
+            },
+        ],
+    },
+    {
+        id: 'admin_class_schedule',
+        title: 'Class Schedule',
         type: 'basic',
-        icon: 'heroicons_outline:academic-cap',
-        link: '/admin/course-management',
+        icon: 'heroicons_outline:calendar',
+        link: '/admin/class-schedule',
     },
 ];
 export const compactNavigation: FuseNavigationItem[] = [
