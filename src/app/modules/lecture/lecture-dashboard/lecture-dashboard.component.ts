@@ -14,6 +14,7 @@ import { CalendarOptions } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import { FuseConfirmationService } from '@fuse/services/confirmation';
 import { TranslocoModule } from '@ngneat/transloco';
+import { UserService } from 'app/core/user/user.service';
 import { IClassSchedule } from 'app/services/class-schedule/class-schedule.model';
 import { ClassScheduleService } from 'app/services/class-schedule/service/class-schedule.service';
 import { ICourseRegistration } from 'app/services/course-registration/course-registration.model';
@@ -24,7 +25,7 @@ import { IModule } from 'app/services/module/module.model';
 import { ModuleService } from 'app/services/module/service/module.service';
 import { IResource } from 'app/services/resource/resource.model';
 import { ResourceService } from 'app/services/resource/service/resource.service';
-import { IUser } from 'app/services/user/service/user-management.model';
+import { IUser, User } from 'app/services/user/service/user-management.model';
 import { UserManagementService } from 'app/services/user/service/user.service';
 import { environment } from 'environments/environment';
 
@@ -47,7 +48,7 @@ import { environment } from 'environments/environment';
     styleUrl: './lecture-dashboard.component.scss',
 })
 export class LectureDashboardComponent implements OnInit {
-    user: IUser = environment.user;
+    user: User;
     dataSource = new MatTableDataSource<IClassSchedule>();
     myCourses: ICourseRegistration[] = [];
     calendarOptions: CalendarOptions = {
@@ -77,10 +78,12 @@ export class LectureDashboardComponent implements OnInit {
         private _changeDetectorRef: ChangeDetectorRef,
         private _moduleService: ModuleService,
         private _formBuilder: FormBuilder,
-        private resourceService: ResourceService
+        private resourceService: ResourceService,
+        private _userService2: UserService
     ) {}
 
     ngOnInit(): void {
+        this.user = environment.user;
         this.loadSchedules();
         this.loadAllRegisterCourses();
         this.loadAll();
@@ -90,7 +93,7 @@ export class LectureDashboardComponent implements OnInit {
     loadAllRegisterCourses(): void {
         this._courseRegisterService
             .search({
-                query: `instructorId:${environment.user.id}`,
+                query: `instructorId:${this.user.id}`,
                 size: 100,
                 sort: ['asc'], // API-side sorting
             })
@@ -140,9 +143,10 @@ export class LectureDashboardComponent implements OnInit {
 
     /** Load all schedules based on registered courses */
     loadSchedules(): void {
+        const lectureId = environment.user.id;
         this._scheduleService
             .search({
-                query: `instructorId:${environment.user.id}`,
+                query: `instructorId:${lectureId}`,
                 size: 100,
                 sort: ['asc'],
             })

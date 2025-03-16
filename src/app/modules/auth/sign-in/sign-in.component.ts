@@ -130,6 +130,7 @@ export class AuthSignInComponent implements OnInit {
                             };
                             this._userService.user = userData;
                             var userRoles = u.authorities;
+                            environment.user = u;
 
                             let role = '';
                             let redirectURL = '/sign-in'; // Default redirect if no role found

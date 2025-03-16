@@ -11,6 +11,8 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { FullCalendarModule } from '@fullcalendar/angular';
 import { FuseConfirmationService } from '@fuse/services/confirmation';
 import { TranslocoModule } from '@ngneat/transloco';
+import { IAssignment } from 'app/services/assignment/assignment.model';
+import { AssignmentService } from 'app/services/assignment/service/assignment.service';
 import { ClassScheduleService } from 'app/services/class-schedule/service/class-schedule.service';
 import { ICourseRegistration } from 'app/services/course-registration/course-registration.model';
 import { CourseRegistrationService } from 'app/services/course-registration/service/course-registration.service';
@@ -42,8 +44,12 @@ import { environment } from 'environments/environment';
 export class StudentAssessmentsComponent implements OnInit {
     myCourses: ICourseRegistration[] = [];
     modules: IModule[] = [];
+    assesments: IAssignment[] = [];
     selectedCourseId: string | null = null;
     selectedSemester: string | null = null;
+    expandedAssignments: string[] = [];
+    selectedFiles: { [key: string]: File } = {};
+    fileErrors: { [key: string]: string } = {};
 
     constructor(
         private _scheduleService: ClassScheduleService,
@@ -53,6 +59,7 @@ export class StudentAssessmentsComponent implements OnInit {
         private _fuseConfirmationService: FuseConfirmationService,
         private _changeDetectorRef: ChangeDetectorRef,
         private _moduleService: ModuleService,
+        private _assessmentsService: AssignmentService,
         private _formBuilder: FormBuilder,
         private resourceService: ResourceService
     ) {}
@@ -154,13 +161,13 @@ export class StudentAssessmentsComponent implements OnInit {
     loadModules(courseId: string, semester: string | null): void {
         if (!semester) {
             console.warn('No semester selected, clearing modules.');
-            this.modules = []; // Ensure modules are cleared when no semester exists
+            this.modules = [];
             return;
         }
 
         this._moduleService
             .search({
-                query: `courseId:${courseId} AND semester:${semester}`, // Correct query format
+                query: `courseId:${courseId} AND semester:${semester}`,
                 size: 100,
                 sort: ['desc'],
             })
@@ -170,10 +177,81 @@ export class StudentAssessmentsComponent implements OnInit {
                         `Modules for Course ID ${courseId} and Semester ${semester}:`,
                         res.body
                     );
-                    this.modules = res.body; // Update modules dynamically
+                    this.modules = res.body;
+
+                    const moduleIds = this.modules
+                        .map((m) => m.id)
+                        .join(' OR ');
+
+                    if (moduleIds) {
+                        this._assessmentsService
+                            .search({
+                                query: `courseId:${courseId} AND moduleId:(${moduleIds})`,
+                                size: 100,
+                                sort: ['asc'],
+                            })
+                            .subscribe((res) => {
+                                this.assesments = res.body;
+                            });
+                    }
                 } else {
-                    this.modules = []; // Clear modules if no data is returned
+                    this.modules = [];
                 }
             });
+    }
+
+    /** Toggle Assignment Details */
+    toggleAssignmentDetails(assignmentId: string): void {
+        const index = this.expandedAssignments.indexOf(assignmentId);
+        if (index > -1) {
+            this.expandedAssignments.splice(index, 1); // Collapse
+        } else {
+            this.expandedAssignments.push(assignmentId); // Expand
+        }
+    }
+
+    /** Filter Assignments for a Specific Module */
+    filteredAssignments(moduleId: string) {
+        return this.assesments.filter((a) => a.moduleId === moduleId);
+    }
+
+    /** Check if Deadline is Near */
+    isDeadlineNear(deadline: string): boolean {
+        const today = new Date();
+        const dueDate = new Date(deadline);
+        return dueDate.getTime() - today.getTime() <= 48 * 60 * 60 * 1000; // Less than 48 hours
+    }
+
+    /** Handle File Selection */
+    onFileSelected(event: any, assignmentId: string): void {
+        const file = event.target.files[0];
+
+        if (file) {
+            const allowedExtensions = ['doc', 'docx'];
+            const fileExtension = file.name.split('.').pop()?.toLowerCase();
+
+            if (!allowedExtensions.includes(fileExtension)) {
+                this.fileErrors[assignmentId] =
+                    'Only .doc and .docx files are allowed!';
+                this.selectedFiles[assignmentId] = null;
+                return;
+            }
+
+            this.fileErrors[assignmentId] = '';
+            this.selectedFiles[assignmentId] = file;
+        }
+    }
+
+    /** Submit Assignment */
+    submitAssignment(assignmentId: string): void {
+        if (!this.selectedFiles[assignmentId]) return;
+
+        console.log(
+            `Submitting assignment ${assignmentId} with file:`,
+            this.selectedFiles[assignmentId].name
+        );
+        alert('Assignment submitted successfully!');
+
+        // TODO: API call for assignment submission
     }
 }

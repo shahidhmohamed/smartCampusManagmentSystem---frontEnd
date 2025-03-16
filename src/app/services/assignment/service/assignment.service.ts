@@ -3,10 +3,11 @@ import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable, asapScheduler, scheduled } from 'rxjs';
 
 import { catchError } from 'rxjs/operators';
+
 import { IAssignment, NewAssignment } from '../assignment.model';
 import { ApplicationConfigService } from 'app/services/core/config/application-config.service';
 import { createRequestOption } from 'app/services/core/request/request-util';
-import { Search } from 'app/services/core/request/request.model';
+import { Search, SearchWithPagination } from 'app/services/core/request/request.model';
 import { isPresent } from 'app/services/core/util/operators';
 
 export type PartialUpdateAssignment = Partial<IAssignment> & Pick<IAssignment, 'id'>;
@@ -51,7 +52,7 @@ export class AssignmentService {
     return this.http.delete(`${this.resourceUrl}/${id}`, { observe: 'response' });
   }
 
-  search(req: Search): Observable<EntityArrayResponseType> {
+  search(req: SearchWithPagination): Observable<EntityArrayResponseType> {
     const options = createRequestOption(req);
     return this.http
       .get<IAssignment[]>(this.resourceSearchUrl, { params: options, observe: 'response' })
@@ -86,3 +87,4 @@ export class AssignmentService {
     return assignmentCollection;
   }
 }
+
