@@ -179,6 +179,30 @@ export const defaultNavigation: FuseNavigationItem[] = [
         link: '/student/assessment',
     },
 
+    {
+        id: 'student_filemanager',
+        title: 'File Manager',
+        type: 'basic',
+        icon: 'heroicons_outline:academic-cap',
+        link: '/student/file-manager',
+    },
+
+    {
+        id: 'student_event',
+        title: 'Event Manager',
+        type: 'basic',
+        icon: 'heroicons_outline:academic-cap',
+        link: '/student/event-manager',
+    },
+
+    {
+        id: 'student_resource_booking',
+        title: 'Resource Booking',
+        type: 'basic',
+        icon: 'heroicons_outline:calendar',
+        link: '/student/resourse',
+    },
+
     //lecture
 
     {
