@@ -21,6 +21,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSelect } from '@angular/material/select';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { Router } from '@angular/router';
 import {
     IAssignment,
     NewAssignment,
@@ -30,8 +31,10 @@ import { ICourse } from 'app/services/course/course.model';
 import { CourseService } from 'app/services/course/service/course.service';
 import { IModule } from 'app/services/module/module.model';
 import { ModuleService } from 'app/services/module/service/module.service';
+import { User } from 'app/services/user/service/user-management.model';
 import { UserManagementService } from 'app/services/user/service/user.service';
 import { environment } from 'environments/environment';
+import moment from 'moment';
 import { Observable, map, startWith } from 'rxjs';
 
 @Component({
@@ -61,12 +64,14 @@ import { Observable, map, startWith } from 'rxjs';
 export class LectureAssignmentComponent implements OnInit {
     @ViewChild(MatPaginator) private _paginator: MatPaginator;
     searchText = new FormControl('');
+    user: User = environment.user;
     createForm: boolean = false;
     displayedColumns: string[] = [
         'Course',
         'Module',
         'Title',
         'DueDate',
+        'Submitions',
         'Action',
     ];
     dataSource = new MatTableDataSource<IAssignment>();
@@ -94,6 +99,7 @@ export class LectureAssignmentComponent implements OnInit {
     instructorId: string | null = null;
 
     constructor(
+        private router: Router,
         private _courseService: CourseService,
         private _moduleService: ModuleService,
         private _assignmentService: AssignmentService,
@@ -109,11 +115,11 @@ export class LectureAssignmentComponent implements OnInit {
             moduleId: ['', Validators.required],
             title: ['', Validators.required],
             description: ['', Validators.required],
-            instructorId: ['', Validators.required],
+            instructorId: [this.user.id],
             deadLine: ['', Validators.required],
-            createdBy: ['', Validators.required],
+            createdBy: [this.user.id],
             createdAt: ['', Validators.required],
-            modifiedAt: ['', Validators.required],
+            modifiedAt: [moment().format('YYYY-MM-DD MM:SS')],
         });
 
         this.loadCourses();
@@ -130,6 +136,10 @@ export class LectureAssignmentComponent implements OnInit {
         );
 
         this.instructorId = environment.user.id;
+    }
+
+    goToSubmissions(courseId: string): void {
+        this.router.navigate(['lecture/submissions', courseId]);
     }
 
     loadCourses(): void {
@@ -202,6 +212,9 @@ export class LectureAssignmentComponent implements OnInit {
         } else {
             const newAssignment: NewAssignment = {
                 ...assignmentData,
+                createdAt: moment().format('YYYY-MM-DD MM:SS'),
+                instructorId: this.user.id,
+                createdBy: this.user.id,
                 id: null,
             };
             this._assignmentService.create(newAssignment).subscribe(() => {

@@ -1,0 +1,87 @@
+<div class="flex h-screen w-screen bg-gray-50">
+    <!-- Sidebar (Chat List) -->
+    <div class="flex w-80 flex-col border-r bg-white shadow-lg">
+        <div class="flex items-center justify-between border-b p-4">
+            <h3 class="text-lg font-semibold">Chats</h3>
+            <mat-icon
+                svgIcon="add"
+                (click)="openUserDialog()"
+                class="cursor-pointer transition hover:text-blue-500"
+            ></mat-icon>
+        </div>
+
+        <!-- Chat List -->
+        <div class="flex-1 space-y-3 overflow-y-auto p-2">
+            <div
+                *ngFor="let chat of allChat"
+                class="flex cursor-pointer items-center gap-3 rounded-lg bg-white p-3 shadow transition hover:bg-blue-50"
+                (click)="openChat(chat)"
+            >
+                <div
+                    class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-200"
+                >
+                    <mat-icon class="text-gray-500">person</mat-icon>
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-md font-medium text-gray-900">
+                        {{ chat.contactId }}
+                    </h4>
+                    <p class="text-sm text-gray-500">
+                        {{ chat.contact || 'Available' }}
+                    </p>
+                </div>
+                <mat-icon class="text-gray-600 transition hover:text-blue-500"
+                    >message</mat-icon
+                >
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Window -->
+    <div class="flex flex-1 flex-col bg-white shadow-lg" *ngIf="selectedChat">
+        <div class="flex items-center justify-between border-b p-4">
+            <div class="flex items-center gap-3">
+                <div
+                    class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200"
+                >
+                    <mat-icon class="text-gray-500">person</mat-icon>
+                </div>
+                <h3 class="text-lg font-semibold">
+                    {{ selectedChat.contactId }}
+                </h3>
+            </div>
+        </div>
+
+        <div class="chat-container flex-1 overflow-y-auto bg-gray-100 p-4">
+            <div *ngFor="let message of allMessages" class="mb-4 flex flex-col">
+                <div
+                    class="max-w-xs rounded-lg px-4 py-2 shadow"
+                    [ngClass]="{
+                        'ml-auto bg-blue-500 text-white':
+                            message.senderId === loggedInUserId,
+                        'mr-auto bg-gray-200 text-gray-800':
+                            message.senderId !== loggedInUserId,
+                    }"
+                >
+                    {{ message.content }}
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t bg-white p-4">
+            <div class="flex items-center">
+                <input
+                    [(ngModel)]="newMessage"
+                    class="w-full rounded-lg border px-3 py-2"
+                    placeholder="Type a message..."
+                />
+                <button
+                    class="ml-2 rounded-lg bg-blue-500 px-4 py-2 text-white"
+                    (click)="sendMessage()"
+                >
+                    <mat-icon>send</mat-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

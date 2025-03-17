@@ -1,0 +1,21 @@
+@keyframes grayBgAnimation {
+    0% {
+        background-color: #0f172a; 
+    }
+    25% {
+        background-color: #1e293b; 
+    }
+    50% {
+        background-color: #334155; 
+    }
+    75% {
+        background-color: #1e293b; 
+    }
+    100% {
+        background-color: #0f172a; 
+    }
+}
+
+.animated-bg {
+    animation: grayBgAnimation 4s infinite alternate ease-in-out;
+}

@@ -162,6 +162,14 @@ export const defaultNavigation: FuseNavigationItem[] = [
         link: '/admin/class-schedule',
     },
 
+    {
+        id: 'admin_chat',
+        title: 'Chat',
+        type: 'basic',
+        icon: 'heroicons_outline:chat-bubble-left-right',
+        link: '/admin/chat',
+    },
+
     //Students
     {
         id: 'student_assignments',

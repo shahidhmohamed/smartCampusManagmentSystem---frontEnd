@@ -49,12 +49,12 @@
                                     >
                                         <div>
                                             <h3
-                                                class="text-xl font-semibold text-gray-800 dark:text-gray-100"
+                                                class="text-2xl font-semibold text-gray-800 dark:text-gray-100"
                                             >
                                                 {{ module.moduleName }}
                                             </h3>
                                             <p
-                                                class="text-sm text-gray-600 dark:text-gray-400"
+                                                class="text-lg text-gray-600 dark:text-gray-400"
                                             >
                                                 {{ module.moduleCode }}
                                             </p>
@@ -64,7 +64,7 @@
                                     <!-- Assignments Section -->
                                     <div class="mt-4">
                                         <h4
-                                            class="text-md font-semibold text-gray-700 dark:text-gray-300"
+                                            class="text-lg font-semibold text-gray-700 dark:text-gray-300"
                                         >
                                             Assignments
                                         </h4>
@@ -79,22 +79,35 @@
                                             class="mt-4"
                                         >
                                             <div
-                                                class="rounded-lg border border-gray-300 bg-gray-50 p-4 shadow-md dark:bg-gray-700"
+                                                class="rounded-lg animated-bg p-4 shadow-md "
                                             >
                                                 <!-- Assignment Header -->
                                                 <div
                                                     class="flex items-center justify-between"
                                                 >
-                                                    <div>
+                                                    <div
+                                                        class="w-full rounded-lg bg-white p-4 shadow-md dark:bg-gray-800"
+                                                    >
+                                                        <!-- Assignment Title -->
                                                         <h5
-                                                            class="text-lg font-medium text-gray-900 dark:text-white"
+                                                            class="text-xl font-semibold text-gray-900 dark:text-white"
                                                         >
                                                             {{
                                                                 assignment.title
                                                             }}
                                                         </h5>
+
+                                                        <!-- Due Date -->
                                                         <p
-                                                            class="text-sm font-medium text-gray-600 dark:text-gray-300"
+                                                            class="mt-2 text-sm font-medium"
+                                                            [ngClass]="
+                                                                assignment.isSubmitted
+                                                                    ? 'text-gray-500'
+                                                                    : 'text-gray-600 dark:text-gray-300'
+                                                            "
+                                                            *ngIf="
+                                                                !assignment.isSubmitted
+                                                            "
                                                         >
                                                             Due:
                                                             <span
@@ -114,7 +127,69 @@
                                                                 }}
                                                             </span>
                                                         </p>
+
+                                                        <!-- Submission Details -->
+                                                        <div
+                                                            class="mt-3 flex flex-col gap-2"
+                                                        >
+                                                            <div
+                                                                class="flex items-center gap-2"
+                                                            >
+                                                                <span
+                                                                    *ngIf="
+                                                                        assignment.isSubmitted
+                                                                    "
+                                                                    class="rounded-lg bg-green-500 px-3 py-1 text-sm font-medium text-white"
+                                                                >
+                                                                    Submitted
+                                                                </span>
+                                                                <span
+                                                                    *ngIf="
+                                                                        assignment.isSubmitted
+                                                                    "
+                                                                    class="rounded-lg bg-blue-500 px-3 py-1 text-sm font-medium text-white"
+                                                                >
+                                                                    {{
+                                                                        assignment
+                                                                            .submittedFile
+                                                                            .markingStatus
+                                                                    }}
+                                                                </span>
+                                                            </div>
+
+                                                            <!-- Grade Display -->
+                                                            <div
+                                                                *ngIf="
+                                                                    assignment.isSubmitted
+                                                                "
+                                                                class="flex w-fit items-center gap-2 rounded-lg bg-gray-700 px-3 py-2 text-white"
+                                                            >
+                                                                <span
+                                                                    class="text-sm"
+                                                                    >Grade:</span
+                                                                >
+                                                                <span
+                                                                    class="text-lg font-semibold"
+                                                                    >{{
+                                                                        assignment
+                                                                            .submittedFile
+                                                                            .grade
+                                                                    }}</span
+                                                                >
+                                                                <span
+                                                                    class="text-sm font-medium"
+                                                                    >({{
+                                                                        getGradeLetter(
+                                                                            assignment
+                                                                                .submittedFile
+                                                                                .grade
+                                                                        )
+                                                                    }})</span
+                                                                >
+                                                            </div>
+                                                        </div>
                                                     </div>
+
                                                     <button
                                                         mat-icon-button
                                                         (click)="
@@ -145,7 +220,7 @@
                                                     class="mt-3 border-t pt-4"
                                                 >
                                                     <p
-                                                        class="text-sm text-gray-700 dark:text-gray-300"
+                                                        class="text-sm text-white dark:text-gray-300"
                                                     >
                                                         {{
                                                             assignment.description
@@ -155,68 +230,71 @@
                                                     <!-- Submission Form -->
                                                     <div
                                                         class="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:bg-gray-800"
+                                                        *ngIf="
+                                                            !assignment.isSubmitted
+                                                        "
                                                     >
-                                                        <h6
-                                                            class="text-md font-medium text-gray-800 dark:text-gray-200"
+                                                        <div
+                                                            *ngIf="isUploading"
+                                                            class="mt-4"
                                                         >
-                                                            Submit Your Work
-                                                        </h6>
+                                                            <div
+                                                                class="h-2 w-full rounded-full bg-gray-200"
+                                                            >
+                                                                <div
+                                                                    class="h-2 rounded-full bg-blue-500"
+                                                                    [style.width.%]="
+                                                                        uploadProgress
+                                                                    "
+                                                                ></div>
+                                                            </div>
+                                                            <p
+                                                                class="mt-1 text-center text-sm text-gray-600"
+                                                            >
+                                                                Uploading...
+                                                                {{
+                                                                    uploadProgress
+                                                                }}%
+                                                            </p>
+                                                        </div>
 
                                                         <!-- File Upload -->
-                                                        <label
-                                                            class="mt-2 block"
+                                                        <div
+                                                            class="cursor-pointer rounded-lg border-2 border-dashed border-gray-300 p-4 text-center hover:border-blue-500"
+                                                            (click)="
+                                                                fileInput.click()
+                                                            "
                                                         >
                                                             <input
                                                                 type="file"
+                                                                #fileInput
+                                                                class="hidden"
                                                                 (change)="
-                                                                    onFileSelected(
-                                                                        $event,
-                                                                        assignment.id
+                                                                    onFileChange(
+                                                                        $event
                                                                     )
                                                                 "
-                                                                accept=".doc,.docx"
-                                                                class="hidden"
-                                                                #fileInput
                                                             />
-                                                            <div
-                                                                class="flex cursor-pointer items-center justify-center rounded-md border border-gray-300 bg-gray-100 p-3 dark:border-gray-600 dark:bg-gray-700"
+                                                            <p
+                                                                *ngIf="
+                                                                    !selectedFile
+                                                                "
+                                                                class="text-gray-500"
                                                             >
-                                                                <mat-icon
-                                                                    class="text-gray-600"
-                                                                    >attach_file</mat-icon
-                                                                >
-                                                                <span
-                                                                    class="ml-2 text-sm text-gray-700 dark:text-gray-300"
-                                                                >
-                                                                    {{
-                                                                        selectedFiles[
-                                                                            assignment
-                                                                                .id
-                                                                        ]
-                                                                            ?.name ||
-                                                                            'Attach Word Document (.doc, .docx)'
-                                                                    }}
-                                                                </span>
-                                                            </div>
-                                                        </label>
-
-                                                        <!-- Error Message -->
-                                                        <p
-                                                            *ngIf="
-                                                                fileErrors[
-                                                                    assignment
-                                                                        .id
-                                                                ]
-                                                            "
-                                                            class="mt-1 text-sm text-red-500"
-                                                        >
-                                                            {{
-                                                                fileErrors[
-                                                                    assignment
-                                                                        .id
-                                                                ]
-                                                            }}
-                                                        </p>
+                                                                Click or Drag a
+                                                                file here
+                                                            </p>
+                                                            <p
+                                                                *ngIf="
+                                                                    selectedFile
+                                                                "
+                                                                class="font-medium text-gray-700"
+                                                            >
+                                                                {{
+                                                                    selectedFile.name
+                                                                }}
+                                                            </p>
+                                                        </div>
 
                                                         <!-- Submit Button -->
                                                         <button
@@ -224,10 +302,7 @@
                                                             color="primary"
                                                             class="mt-3 w-full"
                                                             [disabled]="
-                                                                !selectedFiles[
-                                                                    assignment
-                                                                        .id
-                                                                ]
+                                                                !selectedFile
                                                             "
                                                             (click)="
                                                                 submitAssignment(
@@ -237,6 +312,114 @@
                                                         >
                                                             Submit Assignment
                                                         </button>
+                                                    </div>
+
+                                                    <!-- Files -->
+                                                    <div
+                                                        *ngIf="
+                                                            assignment.isSubmitted
+                                                        "
+                                                    >
+                                                        <div
+                                                            class="-m-2 mt-2 flex flex-wrap"
+                                                        >
+                                                            <div
+                                                                class="group bg-card relative m-2 flex h-40 w-40 cursor-pointer flex-col rounded-2xl p-4 shadow"
+                                                                (click)="
+                                                                    downloadFile(
+                                                                        assignment.submittedFile
+                                                                    )
+                                                                "
+                                                            >
+                                                                <div
+                                                                    class="aspect-[9/6]"
+                                                                >
+                                                                    <div
+                                                                        class="flex h-full items-center justify-center"
+                                                                    >
+                                                                        <!-- File Type Icons -->
+                                                                        <div
+                                                                            class="relative"
+                                                                        >
+                                                                            <mat-icon
+                                                                                class="text-hint opacity-50 icon-size-14"
+                                                                                [svgIcon]="
+                                                                                    'heroicons_solid:document'
+                                                                                "
+                                                                            ></mat-icon>
+                                                                            <div
+                                                                                class="absolute bottom-0 left-0 rounded px-1.5 text-sm font-semibold leading-5 text-white"
+                                                                                [class.bg-red-600]="
+                                                                                    assignment
+                                                                                        .submittedFile
+                                                                                        .extension ===
+                                                                                    'PDF'
+                                                                                "
+                                                                                [class.bg-blue-600]="
+                                                                                    assignment
+                                                                                        .submittedFile
+                                                                                        .extension ===
+                                                                                    'DOC'
+                                                                                "
+                                                                                [class.bg-green-600]="
+                                                                                    assignment
+                                                                                        .submittedFile
+                                                                                        .extension ===
+                                                                                    'XLS'
+                                                                                "
+                                                                                [class.bg-gray-600]="
+                                                                                    assignment
+                                                                                        .submittedFile
+                                                                                        .extension ===
+                                                                                    'TXT'
+                                                                                "
+                                                                                [class.bg-amber-600]="
+                                                                                    assignment
+                                                                                        .submittedFile
+                                                                                        .extension ===
+                                                                                    'JPG'
+                                                                                "
+                                                                            >
+                                                                                {{
+                                                                                    assignment.submittedFile.extension?.toUpperCase()
+                                                                                }}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <!-- Click to Download Animation -->
+                                                                <div
+                                                                    class="absolute inset-0 flex items-center justify-center rounded-xl bg-black bg-opacity-50 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                                                                >
+                                                                    <p
+                                                                        class="animate-bounce text-sm font-medium text-white"
+                                                                    >
+                                                                        Click to
+                                                                        Download
+                                                                    </p>
+                                                                </div>
+
+                                                                <div
+                                                                    class="flex flex-auto flex-col justify-center text-center text-sm font-medium"
+                                                                >
+                                                                    <div
+                                                                        class="truncate"
+                                                                        [matTooltip]="
+                                                                            assignment
+                                                                                .submittedFile
+                                                                                .name
+                                                                        "
+                                                                    >
+                                                                        {{
+                                                                            assignment
+                                                                                .submittedFile
+                                                                                .name
+                                                                        }}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>

@@ -1,0 +1,68 @@
+<div class="bg-card h-full flex-auto p-6 dark:bg-transparent">
+    <h2 class="mb-4 text-xl font-semibold">
+        {{ registerForm.value.id ? 'Update' : 'Create' }} Chat Profile
+    </h2>
+
+    <form [formGroup]="registerForm" (ngSubmit)="saveUserProfile()">
+        <div class="grid grid-cols-2 gap-4">
+            <!-- Select User -->
+            <mat-form-field class="w-full">
+                <mat-label>Select User</mat-label>
+                <input
+                    type="text"
+                    matInput
+                    [formControl]="studentControl"
+                    [matAutocomplete]="autoStudent"
+                    placeholder="Type to find student"
+                />
+                <mat-autocomplete
+                    #autoStudent="matAutocomplete"
+                    [displayWith]="displayStudentName"
+                    (optionSelected)="onSelectStudent($event)"
+                >
+                    <mat-option
+                        *ngFor="let student of filteredStudents$ | async"
+                        [value]="student"
+                    >
+                        {{ student.firstName }} {{ student.lastName }}
+                    </mat-option>
+                </mat-autocomplete>
+            </mat-form-field>
+
+            <!-- User Name -->
+            <mat-form-field class="w-full">
+                <mat-label>User Name</mat-label>
+                <input matInput formControlName="name" required />
+            </mat-form-field>
+
+            <!-- User ID -->
+            <mat-form-field class="w-full">
+                <mat-label>User ID</mat-label>
+                <input matInput formControlName="userId" required />
+            </mat-form-field>
+
+            <!-- Email -->
+            <mat-form-field class="w-full">
+                <mat-label>Email</mat-label>
+                <input matInput type="email" formControlName="email" required />
+            </mat-form-field>
+
+            
+        </div>
+
+        <!-- Buttons -->
+        <div class="mt-6 flex justify-end space-x-3">
+            <button
+                mat-stroked-button
+                color="warn"
+                type="button"
+                (click)="closeDialog()"
+            >
+                Cancel
+            </button>
+            <button mat-flat-button color="primary" type="submit">
+                {{ registerForm.value.id ? 'Update' : 'Create' }} Profile
+            </button>
+        </div>
+    </form>
+</div>

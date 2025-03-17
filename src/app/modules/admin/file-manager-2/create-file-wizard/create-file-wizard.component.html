@@ -17,9 +17,28 @@
             class="flex flex-col md:flex-row md:space-x-4"
             *ngIf="!data.currentFolder || !data.currentFolder.courseId"
         >
-            <mat-form-field class="w-full">
-                <mat-label>Course ID</mat-label>
-                <input matInput formControlName="courseId" />
+            <!-- Course ID -->
+            <mat-form-field class="mt-3 w-full">
+                <mat-label>Select Course</mat-label>
+                <input
+                    type="text"
+                    matInput
+                    [formControl]="coursesControl"
+                    [matAutocomplete]="auto"
+                    placeholder="Type to find"
+                />
+                <mat-autocomplete
+                    #auto="matAutocomplete"
+                    [displayWith]="displayCourseName"
+                    (optionSelected)="onSelectCourse($event)"
+                >
+                    <mat-option
+                        *ngFor="let course of filteredCourses$ | async"
+                        [value]="course"
+                    >
+                        {{ course.courseCode }} ({{ course.courseName }})
+                    </mat-option>
+                </mat-autocomplete>
             </mat-form-field>
 
             <mat-form-field class="w-full">

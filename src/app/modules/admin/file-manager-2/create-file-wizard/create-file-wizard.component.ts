@@ -1,12 +1,15 @@
 import { CommonModule } from '@angular/common';
+import { HttpResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 import {
     FormBuilder,
+    FormControl,
     FormGroup,
     FormsModule,
     ReactiveFormsModule,
     Validators,
 } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatOptionModule } from '@angular/material/core';
 import {
@@ -21,11 +24,14 @@ import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MessageCommunicationService } from 'app/layout/common/messages/message.communication.service';
+import { ICourse } from 'app/services/course/course.model';
+import { CourseService } from 'app/services/course/service/course.service';
 import { IFolder } from 'app/services/folder/folder.model';
 import { FolderService } from 'app/services/folder/service/folder.service';
 import { IUser } from 'app/services/user/service/user-management.model';
 import { environment } from 'environments/environment';
 import moment from 'moment';
+import { Observable, map, startWith } from 'rxjs';
 
 @Component({
     selector: 'app-create-file-wizard',
@@ -44,6 +50,7 @@ import moment from 'moment';
         MatInputModule,
         MatOptionModule,
         MatSlideToggleModule,
+        MatAutocompleteModule,
     ],
     templateUrl: './create-file-wizard.component.html',
     styleUrl: './create-file-wizard.component.scss',
@@ -53,6 +60,15 @@ export class CreateFileWizardComponent implements OnInit {
     fileForm: FormGroup;
     authoritiesList: string[] = [];
 
+    coursesControl = new FormControl();
+    filteredCourses$: Observable<ICourse[]>;
+    allCourses: ICourse[] = [];
+    pagination = {
+        length: 0,
+        size: 100,
+        page: 0,
+    };
+
     constructor(
         public dialogRef: MatDialogRef<CreateFileWizardComponent>,
         @Inject(MAT_DIALOG_DATA)
@@ -61,6 +77,7 @@ export class CreateFileWizardComponent implements OnInit {
             currentFolder: IFolder;
         },
         private fb: FormBuilder,
+        private _courseService: CourseService,
         private _folderService: FolderService,
         private _cdr: ChangeDetectorRef,
         private _MessageCommunicationService: MessageCommunicationService
@@ -84,6 +101,17 @@ export class CreateFileWizardComponent implements OnInit {
             parentId: [this.data.parentId || null],
         });
         console.log(this.fileForm.value);
+        this.loadCourses();
+
+        this.filteredCourses$ = this.coursesControl.valueChanges.pipe(
+            startWith(''),
+            map((value) =>
+                typeof value === 'string'
+                    ? value.toLowerCase()
+                    : value?.courseName?.toLowerCase() || ''
+            ),
+            map((name) => this.filterCourses(name))
+        );
         this._cdr.detectChanges();
     }
 
@@ -110,6 +138,51 @@ export class CreateFileWizardComponent implements OnInit {
                 this._cdr.detectChanges();
             }
         });
+    }
+
+    loadCourses(): void {
+        this._courseService
+            .query()
+            .subscribe((res: HttpResponse<ICourse[]>) => {
+                if (res.body) {
+                    this.allCourses = res.body;
+                    this.pagination.length = res.body.length;
+                    this._cdr.detectChanges();
+                }
+            });
+    }
+
+    filterCourses(name: string): ICourse[] {
+        if (!name) return this.allCourses;
+        const filterValue = name.toLowerCase();
+        return this.allCourses.filter(
+            (resource) =>
+                resource.courseName?.toLowerCase().includes(filterValue) ||
+                resource.courseCode?.toLowerCase().includes(filterValue)
+        );
+    }
+
+    onSelectCourse(event: any) {
+        const selectedCourse: ICourse = event.option.value;
+        console.log(selectedCourse.id);
+        if (selectedCourse) {
+            this.fileForm.patchValue({
+                course: selectedCourse.id,
+                courseCode: selectedCourse.courseCode,
+            });
+        }
+    }
+
+    displayCourseName(course: ICourse): string {
+        return course && course.courseName
+            ? `${course.courseCode} ${course.courseName || ''}`
+            : '';
+    }
+
+    getCourseName(courseId: string | undefined | null): string {
+        if (!courseId) return 'Unknown Course';
+        const course = this.allCourses.find((res) => res.id === courseId);
+        return course ? course.courseName : 'Unknown Course';
     }
 
     cancel(): void {
