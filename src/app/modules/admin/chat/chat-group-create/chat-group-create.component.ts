@@ -13,7 +13,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatOptionModule } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -24,16 +24,20 @@ import { MatSelect } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { ChatUserService } from 'app/services/chat-user/service/chat-user.service';
 import { NewChat } from 'app/services/chat/chat.model';
-import { ChatService } from 'app/services/chat/service/chat.service';
+import { GroupChatMembersService } from 'app/services/group-chat-members/service/group-chat-members.service';
+import { GroupChatService } from 'app/services/group-chat/service/group-chat.service';
 import { IUser } from 'app/services/user/service/user-management.model';
 import { UserManagementService } from 'app/services/user/service/user.service';
 import { environment } from 'environments/environment';
 import { Observable, map, startWith } from 'rxjs';
+import { ChatProfileCreateComponent } from '../chat-profile-create/chat-profile-create.component';
+import { NewGroupChatMembers } from 'app/services/group-chat-members/group-chat-members.model';
 
 @Component({
-    selector: 'app-chat-profile-create',
+    selector: 'app-chat-group-create',
     standalone: true,
     imports: [
+        MatDialogModule,
         MatTableModule,
         CommonModule,
         FormsModule,
@@ -51,10 +55,10 @@ import { Observable, map, startWith } from 'rxjs';
         MatButtonToggleModule,
         MatAutocompleteModule,
     ],
-    templateUrl: './chat-profile-create.component.html',
-    styleUrl: './chat-profile-create.component.scss',
+    templateUrl: './chat-group-create.component.html',
+    styleUrl: './chat-group-create.component.scss',
 })
-export class ChatProfileCreateComponent implements OnInit {
+export class ChatGroupCreateComponent implements OnInit {
     pagination = {
         length: 0,
         size: 10,
@@ -62,11 +66,12 @@ export class ChatProfileCreateComponent implements OnInit {
     };
 
     registerForm: UntypedFormGroup;
-    createChatForm: UntypedFormGroup;
+    groupChatForm: UntypedFormGroup;
 
     studentControl = new FormControl();
     filteredStudents$: Observable<IUser[]>;
     allStudents: IUser[] = [];
+    selectedMembers: IUser[] = [];
     isEditMode = false;
 
     constructor(
@@ -75,29 +80,15 @@ export class ChatProfileCreateComponent implements OnInit {
         private _chatUserService: ChatUserService,
         private _formBuilder: FormBuilder,
         private _changeDetectorRef: ChangeDetectorRef,
-        private _chatService: ChatService
+        private _groupChatService: GroupChatService,
+        private _groupChatMemberService: GroupChatMembersService
     ) {}
 
     ngOnInit(): void {
-        this.registerForm = this._formBuilder.group({
+        this.groupChatForm = this._formBuilder.group({
             id: [''],
-            userId: ['', Validators.required],
-            name: ['', Validators.required],
-            // about: [''],
-            // title: [''],
-            // birthday: [''],
-            // phoneNumber: [
-            //     '',
-            //     [Validators.required, Validators.pattern('^[0-9]+$')],
-            // ],
-            email: ['', [Validators.required, Validators.email]],
-        });
-
-        this.createChatForm = this._formBuilder.group({
-            id: [''],
-            contactId: ['', Validators.required],
-            contact: ['', Validators.required],
-            type: [''],
+            title: ['', Validators.required],
+            members: [[]],
         });
 
         this.loadUsers();
@@ -117,7 +108,7 @@ export class ChatProfileCreateComponent implements OnInit {
         this._userService.query().subscribe((res) => {
             setTimeout(() => {
                 this.allStudents = res.body;
-                this._changeDetectorRef.detectChanges(); // Explicitly trigger change detection
+                this._changeDetectorRef.detectChanges();
             });
         });
     }
@@ -136,28 +127,36 @@ export class ChatProfileCreateComponent implements OnInit {
 
     onSelectStudent(event: any) {
         const selectedStudent: IUser = event.option.value;
-        if (selectedStudent) {
-            this.registerForm.patchValue({
-                userId: selectedStudent.id,
-                name: `${selectedStudent.firstName} ${selectedStudent.lastName}`,
-                email: selectedStudent.email,
-            });
-
-            this.createChatForm.patchValue({
-                contactId: selectedStudent.id,
-                contact: `${selectedStudent.firstName} ${selectedStudent.lastName}`,
-            });
+        if (
+            selectedStudent &&
+            !this.selectedMembers.some((m) => m.id === selectedStudent.id)
+        ) {
+            this.selectedMembers.push(selectedStudent); // ✅ Add user to the selected list
+            this.groupChatForm.patchValue({ members: this.selectedMembers });
         }
+        this.studentControl.setValue(''); // ✅ Clear input after selection
+    }
+
+    removeMember(member: IUser) {
+        this.selectedMembers = this.selectedMembers.filter(
+            (m) => m.id !== member.id
+        );
+        this.groupChatForm.patchValue({ members: this.selectedMembers });
     }
 
     displayStudentName(student: IUser | null): string {
         return student ? `${student.firstName} ${student.lastName || ''}` : '';
     }
 
-    saveUserProfile(): void {
-        // const userProfile = this.registerForm.value;
+    // removeMember(member: IUser) {
+    //     this.selectedMembers = this.selectedMembers.filter(
+    //         (m) => m.id !== member.id
+    //     );
+    //     this.groupChatForm.patchValue({ members: this.selectedMembers });
+    // }
 
-        const chat = this.createChatForm.value;
+    saveGroupChat(): void {
+        const chat = this.groupChatForm.value;
         const newChat: NewChat = {
             ...chat,
             id: null,
@@ -165,41 +164,33 @@ export class ChatProfileCreateComponent implements OnInit {
             ownerName: `${environment.user.firstName} ${environment.user.lastName}`,
         };
 
-        this._chatService.create(newChat).subscribe((res) => {
-            if (res) {
-                console.log('Chat Createddddddddddd');
+        console.log('GRouppppppppppppppppppppp', newChat);
+
+        this._groupChatService.create(newChat).subscribe((res) => {
+            if (res && res.body.id) {
+                console.log('Group Chat Created');
+
+                this.selectedMembers.forEach((member) => {
+                    const newGroupMember: NewGroupChatMembers = {
+                        id: null,
+                        groupChatId: res.body.id,
+                        memberUserId: member.id,
+                        memberName: `${member.firstName} ${member.lastName}`,
+                    };
+
+                    this._groupChatMemberService
+                        .create(newGroupMember)
+                        .subscribe(() => {
+                            console.log(
+                                `Member ${member.firstName} added to group`
+                            );
+                            this._changeDetectorRef.detectChanges();
+                        });
+                });
+
                 this._dialogRef.close(true);
             }
-            // this.selectedChat = res.body;
-            // this.selectedChat.messages = [];
-            this._changeDetectorRef.detectChanges();
         });
-
-        // if (this.isEditMode) {
-        //     this.updateUserProfile(userProfile);
-        // } else {
-        //     const newRegister: NewChatUser = {
-        //         ...userProfile,
-        //         id: null,
-        //     };
-        //     this._chatUserService.create(newRegister).subscribe(
-        //         () => {
-        //             console.log('User Profile Created:', userProfile);
-        //             this._dialogRef.close(true);
-        //         },
-        //         (error) => console.error('Error creating user:', error)
-        //     );
-        // }
-    }
-
-    updateUserProfile(userProfile: any): void {
-        this._chatUserService.update(userProfile).subscribe(
-            () => {
-                console.log('User Profile Updated:', userProfile);
-                this._dialogRef.close(true);
-            },
-            (error) => console.error('Error updating user:', error)
-        );
     }
 
     closeDialog(): void {

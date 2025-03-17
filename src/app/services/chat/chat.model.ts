@@ -10,7 +10,8 @@ export interface IChat {
   type?: string | null;
   createdAt?: string | null;
   owner?: string | null;
-  messages?: NewMessage[];
+  ownerName?: string | null;
+  // messages?: NewMessage[];
 }
 
 export type NewChat = Omit<IChat, 'id'> & { id: null };

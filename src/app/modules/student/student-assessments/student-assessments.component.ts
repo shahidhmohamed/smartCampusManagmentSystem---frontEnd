@@ -158,11 +158,8 @@ export class StudentAssessmentsComponent implements OnInit {
 
         if (match) {
             const numSemesters = +match[1];
-
-            // Generate semester labels
             const semesterLabels = this.generateSem(numSemesters);
             // console.log('Generated Semester Labels:', semesterLabels);
-
             return Array.from({ length: numSemesters }, (_, i) => i + 1);
         }
 
@@ -181,14 +178,10 @@ export class StudentAssessmentsComponent implements OnInit {
     onCourseTabChange(index: number): void {
         if (this.myCourses.length > 0) {
             this.selectedCourseId = this.myCourses[index].courseId;
-
-            // Generate semesters and check if they exist
             const semesters = this.generateSem(
                 this.getSemesters(this.myCourses[index].duration).length
             );
-
             if (semesters.length > 0) {
-                // Select first semester if available
                 this.selectedSemester = semesters[0];
                 // console.log(
                 //     `Selected Course ID: ${this.selectedCourseId}, Default Semester: ${this.selectedSemester}`
@@ -197,7 +190,6 @@ export class StudentAssessmentsComponent implements OnInit {
                 // Load modules for the first semester
                 this.loadModules(this.selectedCourseId, this.selectedSemester);
             } else {
-                // No semesters, clear modules
                 this.selectedSemester = null;
                 this.modules = []; // Clear previous course's modules
                 // console.log(

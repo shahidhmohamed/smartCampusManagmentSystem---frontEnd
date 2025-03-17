@@ -1,20 +1,33 @@
 <div class="flex h-screen w-screen bg-gray-50">
     <!-- Sidebar (Chat List) -->
-    <div class="flex w-80 flex-col border-r bg-white shadow-lg">
-        <div class="flex items-center justify-between border-b p-4">
-            <h3 class="text-lg font-semibold">Chats</h3>
-            <mat-icon
-                svgIcon="add"
-                (click)="openUserDialog()"
-                class="cursor-pointer transition hover:text-blue-500"
-            ></mat-icon>
+    <div
+        class="flex w-96 flex-col overflow-hidden rounded-lg border-r bg-white shadow-lg"
+    >
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b bg-gray-100 p-4">
+            <h3 class="text-lg font-semibold text-gray-900">Chats</h3>
+            <div class="flex gap-3">
+                <mat-icon
+                    svgIcon="add"
+                    (click)="openUserDialog()"
+                    class="cursor-pointer text-gray-600 transition hover:text-blue-600"
+                ></mat-icon>
+                <mat-icon
+                    svgIcon="group_add"
+                    (click)="openUserDialogGroup()"
+                    class="cursor-pointer text-gray-600 transition hover:text-blue-600"
+                ></mat-icon>
+            </div>
         </div>
 
         <!-- Chat List -->
-        <div class="flex-1 space-y-3 overflow-y-auto p-2">
+        <div class="flex-1 space-y-2 overflow-y-auto p-2">
+            <h3 class="px-2 text-md font-semibold text-gray-700">
+                Direct Messages
+            </h3>
             <div
                 *ngFor="let chat of allChat"
-                class="flex cursor-pointer items-center gap-3 rounded-lg bg-white p-3 shadow transition hover:bg-blue-50"
+                class="flex cursor-pointer items-center gap-3 rounded-lg bg-blue-50 p-3 shadow-sm transition hover:bg-blue-100"
                 (click)="openChat(chat)"
             >
                 <div
@@ -24,13 +37,41 @@
                 </div>
                 <div class="flex-1">
                     <h4 class="text-md font-medium text-gray-900">
-                        {{ chat.contactId }}
+                        {{
+                            chat.owner === loggedInUserId
+                                ? chat.contact
+                                : chat.ownerName
+                        }}
                     </h4>
                     <p class="text-sm text-gray-500">
-                        {{ chat.contact || 'Available' }}
+                        {{ chat.lastMessage || 'Available' }}
                     </p>
                 </div>
-                <mat-icon class="text-gray-600 transition hover:text-blue-500"
+                <mat-icon class="text-gray-500 transition hover:text-blue-600"
+                    >message</mat-icon
+                >
+            </div>
+
+            <h3 class="mt-4 px-2 text-md font-semibold text-gray-700">
+                Group Chats
+            </h3>
+            <div
+                *ngFor="let group of allGroups"
+                class="flex cursor-pointer items-center gap-3 rounded-lg bg-green-50 p-3 shadow-sm transition hover:bg-green-100"
+                (click)="openGroupChat(group)"
+            >
+                <div
+                    class="flex h-12 w-12 items-center justify-center rounded-full bg-green-200"
+                >
+                    <mat-icon class="text-gray-500">group</mat-icon>
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-md font-medium text-gray-900">
+                        {{ group.title }}
+                    </h4>
+                    <p class="text-sm text-gray-500">Group Chat</p>
+                </div>
+                <mat-icon class="text-gray-500 transition hover:text-blue-600"
                     >message</mat-icon
                 >
             </div>
@@ -38,24 +79,35 @@
     </div>
 
     <!-- Chat Window -->
-    <div class="flex flex-1 flex-col bg-white shadow-lg" *ngIf="selectedChat">
+    <div class="flex flex-1 flex-col p-6 shadow-lg" *ngIf="selectedChat">
         <div class="flex items-center justify-between border-b p-4">
             <div class="flex items-center gap-3">
                 <div
-                    class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200"
+                    class="flex h-10 w-10 items-center justify-center rounded-full"
                 >
                     <mat-icon class="text-gray-500">person</mat-icon>
                 </div>
-                <h3 class="text-lg font-semibold">
-                    {{ selectedChat.contactId }}
+                <h3 class="text-xl font-semibold">
+                    {{
+                        selectedChat.owner === loggedInUserId
+                            ? selectedChat.contact
+                            : selectedChat.ownerName
+                    }}
                 </h3>
             </div>
         </div>
 
-        <div class="chat-container flex-1 overflow-y-auto bg-gray-100 p-4">
-            <div *ngFor="let message of allMessages" class="mb-4 flex flex-col">
+        <div class="chat-container flex-1 overflow-y-auto p-8">
+            <div
+                *ngFor="let message of allMessages"
+                class="mb-4 flex"
+                [ngClass]="{
+                    'justify-end': message.senderId === loggedInUserId,
+                    'justify-start': message.senderId !== loggedInUserId,
+                }"
+            >
                 <div
-                    class="max-w-xs rounded-lg px-4 py-2 shadow"
+                    class="relative flex max-w-xs flex-col rounded-lg px-4 py-2 shadow"
                     [ngClass]="{
                         'ml-auto bg-blue-500 text-white':
                             message.senderId === loggedInUserId,
@@ -63,24 +115,173 @@
                             message.senderId !== loggedInUserId,
                     }"
                 >
-                    {{ message.content }}
+                    <p *ngIf="message.senderName" class="text-xs">
+                        {{ message.senderName }}
+                    </p>
+
+                    <p *ngIf="message.content" class="break-words">
+                        {{ message.content }}
+                    </p>
+
+                    <div *ngIf="message.binaryData" class="mt-1">
+                        <a
+                            [href]="message.binaryData"
+                            target="_blank"
+                            class="block text-sm underline"
+                            [ngClass]="{
+                                'text-white':
+                                    message.senderId === loggedInUserId,
+                                'text-blue-600':
+                                    message.senderId !== loggedInUserId,
+                            }"
+                        >
+                            View Attachment
+                        </a>
+                    </div>
+
+                    <div class="mt-1 self-end text-xs text-gray-400">
+                        {{ message.createdAt | date: 'shortTime' }}
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="border-t bg-white p-4">
+        <div class="mt-3 rounded-xl bg-slate-800 p-4">
+            <div
+                *ngIf="filePreviewUrl"
+                class="mt-2 flex items-center text-sm text-white"
+            >
+                <span
+                    class="rounded-lg bg-green-500 px-3 py-1 text-sm font-medium text-white"
+                >
+                    {{ selectedFile?.name }}
+                </span>
+            </div>
             <div class="flex items-center">
                 <input
                     [(ngModel)]="newMessage"
-                    class="w-full rounded-lg border px-3 py-2"
+                    class="w-full rounded-lg border px-3 py-2 text-white"
                     placeholder="Type a message..."
                 />
-                <button
-                    class="ml-2 rounded-lg bg-blue-500 px-4 py-2 text-white"
-                    (click)="sendMessage()"
+                <div class="flex">
+                    <div class="ml-3 flex items-center justify-center">
+                        <input
+                            type="file"
+                            id="fileInput"
+                            class="hidden text-white"
+                            (change)="onFileChange($event)"
+                        />
+                        <label for="fileInput" class="mr-2 cursor-pointer">
+                            <mat-icon class="text-white">attach_file</mat-icon>
+                        </label>
+                    </div>
+                    <button
+                        class="f rounded-lg px-4 py-2 text-white"
+                        (click)="sendMessage()"
+                    >
+                        <mat-icon>send</mat-icon>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-1 flex-col p-6 shadow-lg" *ngIf="selectedGroupChat">
+        <div class="flex items-center justify-between border-b p-4">
+            <div class="flex items-center gap-3">
+                <div
+                    class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200"
                 >
-                    <mat-icon>send</mat-icon>
-                </button>
+                    <mat-icon class="text-gray-500">group</mat-icon>
+                </div>
+                <h3 class="text-xl font-semibold">
+                    {{ selectedGroupChat.title }}
+                </h3>
+            </div>
+        </div>
+
+        <div class="chat-container flex-1 overflow-y-auto p-8">
+            <div
+                *ngFor="let message of allMessages"
+                class="mb-4 flex"
+                [ngClass]="{
+                    'justify-end': message.senderId === loggedInUserId,
+                    'justify-start': message.senderId !== loggedInUserId,
+                }"
+            >
+                <div
+                    class="relative flex max-w-xs flex-col rounded-lg px-4 py-2 shadow"
+                    [ngClass]="{
+                        'ml-auto bg-blue-500 text-white':
+                            message.senderId === loggedInUserId,
+                        'mr-auto bg-gray-200 text-gray-800':
+                            message.senderId !== loggedInUserId,
+                    }"
+                >
+                    <p *ngIf="message.senderName" class="text-xs">
+                        {{ message.senderName }}
+                    </p>
+                    <p *ngIf="message.content" class="break-words">
+                        {{ message.content }}
+                    </p>
+                    <div *ngIf="message.binaryData" class="mt-1">
+                        <a
+                            [href]="message.binaryData"
+                            target="_blank"
+                            class="block text-sm underline"
+                            [ngClass]="{
+                                'text-white':
+                                    message.senderId === loggedInUserId,
+                                'text-blue-600':
+                                    message.senderId !== loggedInUserId,
+                            }"
+                        >
+                            View Attachment
+                        </a>
+                    </div>
+                    <div class="mt-1 self-end text-xs text-gray-400">
+                        {{ message.createdAt | date: 'shortTime' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3 rounded-xl bg-slate-800 p-4">
+            <div
+                *ngIf="filePreviewUrl"
+                class="mt-2 flex items-center text-sm text-white"
+            >
+                <span
+                    class="rounded-lg bg-green-500 px-3 py-1 text-sm font-medium text-white"
+                >
+                    {{ selectedFile?.name }}
+                </span>
+            </div>
+            <div class="flex items-center">
+                <input
+                    [(ngModel)]="newMessage"
+                    class="w-full rounded-lg border px-3 py-2 text-white"
+                    placeholder="Type a message..."
+                />
+                <div class="flex">
+                    <div class="ml-3 flex items-center justify-center">
+                        <input
+                            type="file"
+                            id="fileInput"
+                            class="hidden"
+                            (change)="onFileChange($event)"
+                        />
+                        <label for="fileInput" class="mr-2 cursor-pointer">
+                            <mat-icon class="text-white">attach_file</mat-icon>
+                        </label>
+                    </div>
+                    <button
+                        class="rounded-lg px-4 py-2 text-white"
+                        (click)="sendMessageGroup()"
+                    >
+                        <mat-icon>send</mat-icon>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
