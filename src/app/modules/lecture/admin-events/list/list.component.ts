@@ -45,10 +45,10 @@ import { FullCalendarModule } from '@fullcalendar/angular';
 import { CalendarOptions } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import { GenericPagination } from 'app/models/GenericPagination';
+import { User } from 'app/services/user/service/user-management.model';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
-import { MessageCommunicationService } from 'app/layout/common/messages/message.communication.service';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -88,7 +88,7 @@ const DATE_TIME_DISPLAY_FORMAT = 'YYYY MMMM DD, hh:mm A';
 })
 export class TasksListComponent implements OnInit, OnDestroy {
     @ViewChild('matDrawer', { static: true }) matDrawer: MatDrawer;
-
+    userId: string = environment.user.id;
     drawerMode: 'side' | 'over';
     campusEvent: ICampusEvent[] = [];
     selectedEvent: ICampusEvent | null = null;
@@ -126,8 +126,7 @@ export class TasksListComponent implements OnInit, OnDestroy {
         private _activatedRoute: ActivatedRoute,
         private _changeDetectorRef: ChangeDetectorRef,
         private _formBuilder: UntypedFormBuilder,
-        private _adminEventService: CampusEventService,
-        private _messageCommunicationServise :MessageCommunicationService
+        private _adminEventService: CampusEventService
     ) {
         this.searchInputControl.valueChanges.subscribe((w) => {
             this.pagination.page = 0;

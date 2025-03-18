@@ -19,7 +19,7 @@ import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
 import { AuthService } from 'app/core/auth/auth.service';
 
 @Component({
-    selector: 'auth-sign-up',
+    selector: 'sign-up-classic',
     templateUrl: './sign-up.component.html',
     encapsulation: ViewEncapsulation.None,
     animations: fuseAnimations,
@@ -37,7 +37,7 @@ import { AuthService } from 'app/core/auth/auth.service';
         MatProgressSpinnerModule,
     ],
 })
-export class AuthSignUpComponent implements OnInit {
+export class SignUpClassicComponent implements OnInit {
     @ViewChild('signUpNgForm') signUpNgForm: NgForm;
 
     alert: { type: FuseAlertType; message: string } = {
@@ -47,6 +47,9 @@ export class AuthSignUpComponent implements OnInit {
     signUpForm: UntypedFormGroup;
     showAlert: boolean = false;
 
+    /**
+     * Constructor
+     */
     /**
      * Constructor
      */
@@ -66,10 +69,11 @@ export class AuthSignUpComponent implements OnInit {
     ngOnInit(): void {
         // Create the form
         this.signUpForm = this._formBuilder.group({
-            name: ['', Validators.required],
+            login: ['', Validators.required],
+            firstName: [''],
+            lastName: [''],
             email: ['', [Validators.required, Validators.email]],
             password: ['', Validators.required],
-            company: [''],
             agreements: ['', Validators.requiredTrue],
         });
     }

@@ -197,6 +197,11 @@
                     >
                         When you have notifications, they will appear here.
                     </div>
+                    <div *ngIf="notifications?.length > 0">
+                        <p *ngFor="let notification of notifications">
+                            🔔 {{ notification.title }} - {{ notification.description }}
+                        </p>
+                    </div>
                 </div>
             }
         </div>

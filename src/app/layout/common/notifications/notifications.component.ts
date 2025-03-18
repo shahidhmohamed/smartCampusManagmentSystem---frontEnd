@@ -19,6 +19,7 @@ import { RouterLink } from '@angular/router';
 import { NotificationsService } from 'app/layout/common/notifications/notifications.service';
 import { Notification } from 'app/layout/common/notifications/notifications.types';
 import { Subject, takeUntil } from 'rxjs';
+import { MessageCommunicationService } from '../messages/message.communication.service';
 
 @Component({
     selector: 'notifications',
@@ -54,7 +55,8 @@ export class NotificationsComponent implements OnInit, OnDestroy {
         private _changeDetectorRef: ChangeDetectorRef,
         private _notificationsService: NotificationsService,
         private _overlay: Overlay,
-        private _viewContainerRef: ViewContainerRef
+        private _viewContainerRef: ViewContainerRef,
+        private _MessageCommunicationService: MessageCommunicationService
     ) {}
 
     // -----------------------------------------------------------------------------------------------------
@@ -65,19 +67,40 @@ export class NotificationsComponent implements OnInit, OnDestroy {
      * On init
      */
     ngOnInit(): void {
+        this._MessageCommunicationService.notificationAnnounced$.subscribe(
+            (w) => {
+                if (w.topic === 'SCHEDULE_NOTIFICATION') {
+                    // alert(w.data);
+                    if (w.data) {
+                        console.log('Notififications', w.data);
+                        this.notifications = w.data;
+                        this._changeDetectorRef.markForCheck();
+                    } else {
+                        console.log('No Messages');
+                    }
+                    // setTimeout(() => {
+                    //     if (w.data) {
+                    //         console.log("Notififications",w.data)
+                    //     } else {
+                    //         console.log('No Messages');
+                    //     }
+                    // }, 1000);
+                }
+            }
+        );
         // Subscribe to notification changes
-        this._notificationsService.notifications$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((notifications: Notification[]) => {
-                // Load the notifications
-                this.notifications = notifications;
+        // this._notificationsService.notifications$
+        //     .pipe(takeUntil(this._unsubscribeAll))
+        //     .subscribe((notifications: Notification[]) => {
+        //         // Load the notifications
+        //         this.notifications = notifications;
 
-                // Calculate the unread count
-                this._calculateUnreadCount();
+        //         // Calculate the unread count
+        //         this._calculateUnreadCount();
 
-                // Mark for check
-                this._changeDetectorRef.markForCheck();
-            });
+        //         // Mark for check
+        //         this._changeDetectorRef.markForCheck();
+        //     });
     }
 
     /**

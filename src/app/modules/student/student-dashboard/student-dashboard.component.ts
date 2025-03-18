@@ -14,6 +14,8 @@ import { CalendarOptions } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import { FuseConfirmationService } from '@fuse/services/confirmation';
 import { TranslocoModule } from '@ngneat/transloco';
+import { MessageCommunicationService } from 'app/layout/common/messages/message.communication.service';
+import { Notification } from 'app/layout/common/notifications/notifications.types';
 import { IClassSchedule } from 'app/services/class-schedule/class-schedule.model';
 import { ClassScheduleService } from 'app/services/class-schedule/service/class-schedule.service';
 import { ICourseRegistration } from 'app/services/course-registration/course-registration.model';
@@ -63,6 +65,7 @@ export class StudentDashboardComponent implements OnInit {
     };
 
     allCourses: ICourse[] = [];
+    notifications: Notification[];
 
     allinstructor: IUser[] = [];
     allModules: IModule[] = [];
@@ -77,7 +80,8 @@ export class StudentDashboardComponent implements OnInit {
         private _changeDetectorRef: ChangeDetectorRef,
         private _moduleService: ModuleService,
         private _formBuilder: FormBuilder,
-        private resourceService: ResourceService
+        private resourceService: ResourceService,
+        private _MessageCommunicationService: MessageCommunicationService
     ) {}
 
     ngOnInit(): void {
@@ -157,26 +161,66 @@ export class StudentDashboardComponent implements OnInit {
                 if (!res.body || res.body.length === 0) {
                     console.warn('No schedules found');
                     this.dataSource.data = [];
+                    this.calendarOptions.events = [];
                     return;
                 }
 
-                const now = new Date().getTime(); // Current timestamp
+                const now = new Date().getTime();
 
                 this.dataSource.data = res.body
                     .filter(
                         (schedule) =>
                             schedule.scheduleDate && schedule.scheduleTimeFrom
-                    ) // Ensure valid data
+                    )
                     .map((schedule) => {
                         const scheduleTimestamp = new Date(
                             `${schedule.scheduleDate}T${schedule.scheduleTimeFrom}:00`
                         ).getTime();
-                        return { ...schedule, scheduleTimestamp }; // Attach timestamp for sorting
+                        return { ...schedule, scheduleTimestamp };
                     })
-                    .filter((schedule) => schedule.scheduleTimestamp >= now) // Remove past schedules
-                    .sort((a, b) => a.scheduleTimestamp - b.scheduleTimestamp); // Nearest first
+                    .filter((schedule) => schedule.scheduleTimestamp >= now)
+                    .sort((a, b) => a.scheduleTimestamp - b.scheduleTimestamp);
 
                 console.log('Sorted Upcoming Schedule:', this.dataSource.data);
+
+                // Pass data to the calendar
+                this.calendarOptions.events = this.dataSource.data.map(
+                    (schedule) => ({
+                        title:
+                            this.getModuleName(schedule.moduleId) ||
+                            'Scheduled Event',
+                        start: new Date(
+                            `${schedule.scheduleDate}T${schedule.scheduleTimeFrom}:00`
+                        ),
+                        color: '#3f51b5',
+                        allDay: false, // Set false if the event has a specific time
+                    })
+                );
+
+                this.notifications = this.calendarOptions.events.map(
+                    (event) => ({
+                        title: event.title,
+                        id: '',
+                        icon: 'heroicons_mini:envelope',
+                        image: '',
+                        description: '',
+                        time: event.start.toString(),
+                        link: '',
+                        useRouter: false,
+                        read: false,
+                    })
+                );
+
+                this._MessageCommunicationService.pushNotification(
+                    'SCHEDULE_NOTIFICATION',
+                    'OK',
+                    this.notifications
+                );
+
+                console.log(
+                    'Updated Calendar Events:',
+                    this.calendarOptions.events
+                );
             });
     }
 

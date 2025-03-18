@@ -52,6 +52,15 @@ export class NavigationService {
             if (item.id === 'admin_events' && userRole !== 'ROLE_ADMIN')
                 return false;
 
+            if (item.id === 'lecture_event' && userRole !== 'ROLE_LECTURE')
+                return false;
+
+            if (
+                item.id === 'lecture_resource_booking' &&
+                userRole !== 'ROLE_LECTURE'
+            )
+                return false;
+
             if (
                 item.id === 'admin_resource_booking' &&
                 userRole !== 'ROLE_ADMIN'
@@ -85,12 +94,12 @@ export class NavigationService {
                 return false;
             }
 
-            if (
-                item.id === 'student_filemanager' &&
-                userRole !== 'ROLE_STUDENT'
-            ) {
-                return false;
-            }
+            // if (
+            //     item.id === 'student_filemanager' &&
+            //     userRole !== 'ROLE_STUDENT'
+            // ) {
+            //     return false;
+            // }
 
             if (item.id === 'student_event' && userRole !== 'ROLE_STUDENT') {
                 return false;

@@ -183,7 +183,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
         id: 'student_filemanager',
         title: 'File Manager',
         type: 'basic',
-        icon: 'heroicons_outline:academic-cap',
+        icon: 'heroicons_outline:cloud',
         link: '/student/file-manager',
     },
 
@@ -191,7 +191,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
         id: 'student_event',
         title: 'Event Manager',
         type: 'basic',
-        icon: 'heroicons_outline:academic-cap',
+        icon: 'heroicons_outline:check-circle',
         link: '/student/event-manager',
     },
 
@@ -211,6 +211,22 @@ export const defaultNavigation: FuseNavigationItem[] = [
         type: 'basic',
         icon: 'heroicons_outline:academic-cap',
         link: '/lecture/assessment',
+    },
+
+    {
+        id: 'lecture_event',
+        title: 'Event Manager',
+        type: 'basic',
+        icon: 'heroicons_outline:check-circle',
+        link: '/lecture/event-manager',
+    },
+
+    {
+        id: 'lecture_resource_booking',
+        title: 'Resource Booking',
+        type: 'basic',
+        icon: 'heroicons_outline:calendar',
+        link: '/lecture/resourse',
     },
 ];
 export const compactNavigation: FuseNavigationItem[] = [

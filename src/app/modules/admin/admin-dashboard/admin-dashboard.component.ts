@@ -14,6 +14,7 @@ import { ResourceType } from 'app/services/enumerations/resource-type.model';
 import { IResource } from 'app/services/resource/resource.model';
 import { ResourceService } from 'app/services/resource/service/resource.service';
 import { IUser } from 'app/services/user/service/user-management.model';
+import { UserManagementService } from 'app/services/user/service/user.service';
 import { environment } from 'environments/environment';
 
 @Component({
@@ -41,12 +42,17 @@ export class AdminDashboardComponent implements OnInit {
     selectedProject: string = 'ACME Corp. Backend App';
     statusCounts = {};
     resourceCounts = {};
+    userCount = {};
+    studentCount: number = 0;
+    lectureCount: number = 0;
+  
 
     constructor(
         private _adminEventService: CampusEventService,
         private router: Router,
         private _resourceService: ResourceService,
-        private _changeDetectorRef: ChangeDetectorRef
+        private _changeDetectorRef: ChangeDetectorRef,
+        private userService: UserManagementService
     ) {}
 
     resourceTypes = [
@@ -115,6 +121,7 @@ export class AdminDashboardComponent implements OnInit {
         this.user = environment.user;
         this.getAllCampusEvent();
         this.getAllCampusResources();
+        this.getUserCount();
         this._changeDetectorRef.detectChanges();
     }
 
@@ -164,4 +171,29 @@ export class AdminDashboardComponent implements OnInit {
             };
         });
     }
+
+    getUserCount() {
+        this.userService.query().subscribe((response) => {
+            if (response.body) {
+                const users = response.body;
+    
+                // Count users separately based on their roles
+                const studentCount = users.filter((user: any) => 
+                    user.authorities.includes('ROLE_STUDENT')
+                ).length;
+    
+                const lectureCount = users.filter((user: any) => 
+                    user.authorities.includes('ROLE_LECTURE')
+                ).length;
+    
+                console.log('Student Count:', studentCount);
+                console.log('Lecture Count:', lectureCount);
+    
+                // Assign counts to variables if needed for UI
+                this.studentCount = studentCount;
+                this.lectureCount = lectureCount;
+            }
+        });
+    }
+    
 }
