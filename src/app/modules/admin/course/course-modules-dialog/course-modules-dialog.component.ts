@@ -67,10 +67,10 @@ export class CourseModulesDialogComponent implements OnInit {
     @ViewChild('newModuleInput') newModuleInput: ElementRef;
 
     semesters = [
-        { id: '1_SEMESTERS', name: '1_SEMESTERS' },
-        { id: '2_SEMESTERS', name: '2_SEMESTERS' },
-        { id: '3_SEMESTERS', name: '3_SEMESTERS' },
-        { id: '4_SEMESTERS', name: '4_SEMESTERS' },
+        { id: 'SEMESTER_1', name: 'SEMESTER_1' },
+        { id: 'SEMESTER_2', name: 'SEMESTER_2' },
+        { id: 'SEMESTER_3', name: 'SEMESTER_3' },
+        { id: 'SEMESTER_4', name: 'SEMESTER_4' },
     ];
 
     constructor(

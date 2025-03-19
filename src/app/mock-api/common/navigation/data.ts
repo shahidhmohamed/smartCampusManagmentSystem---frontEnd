@@ -216,7 +216,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
         id: 'staff_attendence',
         title: 'Attendance',
         type: 'basic',
-        icon: 'heroicons_outline:academic-cap',
+        icon: 'check_box',
         link: '/lecture/Attendance',
     },
 
