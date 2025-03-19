@@ -1,73 +1,128 @@
-<div
-    mat-dialog-title
-    class="flex items-center justify-center text-center text-lg font-semibold"
->
-    <span>{{ data.courseName }}</span>
-</div>
+<div *ngIf="!newModule">
+    <div
+        mat-dialog-title
+        class="flex items-center justify-center text-center text-lg font-semibold"
+    >
+        <span>{{ data.courseName }}</span>
+    </div>
 
-<!-- Search Input -->
-<div
-    class="mt-1 overflow-hidden rounded-md border border-gray-300 shadow-sm dark:border-gray-500"
->
-    <div class="-my-px flex items-center px-3 py-2">
-        <div class="flex min-w-0 flex-auto items-center">
-            <mat-icon
-                class="icon-size-5"
-                svgIcon="heroicons_solid:magnifying-glass"
-            ></mat-icon>
-            <input
-                class="ml-2 w-full min-w-0 border-0 py-1"
-                type="text"
-                placeholder="Search Modules"
-                [formControl]="searchControl"
-            />
+    <!-- Search Input -->
+    <div
+        class="mt-1 overflow-hidden rounded-md border border-gray-300 shadow-sm dark:border-gray-500"
+    >
+        <div class="-my-px flex items-center px-3 py-2">
+            <div class="flex min-w-0 flex-auto items-center">
+                <mat-icon
+                    class="icon-size-5"
+                    svgIcon="heroicons_solid:magnifying-glass"
+                ></mat-icon>
+                <input
+                    class="ml-2 w-full min-w-0 border-0 py-1"
+                    type="text"
+                    placeholder="Search Modules"
+                    [formControl]="searchControl"
+                />
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Modules List -->
-<div
-    class="mt-2 h-44 overflow-y-auto border-t border-gray-300 leading-none dark:border-gray-500"
->
-    <!-- <ng-container *ngIf="filteredModules.length > 0; else noModules">
-        <mat-checkbox
-            *ngFor="let module of filteredModules"
-            class="flex h-10 min-h-10 items-center pl-1 pr-4"
-            [color]="'primary'"
-            [checked]="selectedModules.has(module.id)"
-            (change)="toggleModuleSelection(module.id)"
-        >
-            {{ module.moduleName }}
-        </mat-checkbox>
-    </ng-container> -->
-
-    <ng-container>
-        <div class="space-y-2 p-1">
-            <mat-form-field
-                *ngFor="let module of filteredModules"
-                class="fuse-mat-dense w-full"
-                [subscriptSizing]="'dynamic'"
-            >
-                <input matInput [value]="module.moduleName" />
-                <button
-                    mat-icon-button
-                    (click)="deleteModule(module)"
-                    matSuffix
+    <!-- Modules List -->
+    <div
+        class="mt-2 h-44 overflow-y-auto border-t border-gray-300 leading-none dark:border-gray-500"
+    >
+        <ng-container>
+            <div class="space-y-2 p-1">
+                <mat-form-field
+                    *ngFor="
+                        let module of filteredModules;
+                        trackBy: trackByModule
+                    "
+                    class="fuse-mat-dense w-full"
+                    [subscriptSizing]="'dynamic'"
                 >
-                    <mat-icon
-                        svgIcon="heroicons_solid:arrows-pointing-in"
-                    ></mat-icon>
-                </button>
-            </mat-form-field>
-        </div>
-    </ng-container>
+                    <input matInput [value]="module.moduleName" />
+                    <button
+                        mat-icon-button
+                        (click)="deleteModule(module)"
+                        matSuffix
+                    >
+                        <mat-icon svgIcon="heroicons_solid:trash"></mat-icon>
+                    </button>
+                </mat-form-field>
+            </div>
+        </ng-container>
 
-    <ng-template #noModules>
-        <div class="p-4 text-center">No modules found.</div>
-    </ng-template>
+        <ng-template #noModules>
+            <div class="p-4 text-center">No modules found.</div>
+        </ng-template>
+    </div>
+
+    <!-- Dialog Actions -->
+    <mat-dialog-actions align="end">
+        <button mat-flat-button (click)="closeDialog()" color="warn">
+            Close
+        </button>
+
+        <button mat-flat-button (click)="toggleNewModule()" color="primary">
+            New
+        </button>
+    </mat-dialog-actions>
 </div>
 
-<!-- Dialog Actions -->
-<mat-dialog-actions align="end">
-    <button mat-flat-button (click)="closeDialog()" color="warn">Close</button>
-</mat-dialog-actions>
+<!-- Add New Module Section -->
+<div *ngIf="newModule">
+    <div
+        mat-dialog-title
+        class="flex items-center justify-center text-center text-lg font-semibold"
+    >
+        <span>Add New Module</span>
+    </div>
+
+    <form [formGroup]="newModulesForm" class="space-y-2 p-4">
+        <mat-form-field class="w-full">
+            <mat-label>Module Name</mat-label>
+            <input matInput formControlName="moduleName" />
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+            <mat-label>Module Code</mat-label>
+            <input matInput formControlName="moduleCode" />
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+            <mat-label>Lecturer ID</mat-label>
+            <input matInput formControlName="lecturerId" />
+            <mat-select formControlName="lecturerId">
+                <mat-option *ngFor="let lec of allinstructor" [value]="lec.id">
+                    {{ lec.firstName }} -
+                    {{ lec.lastName }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+            <mat-label>Semester</mat-label>
+            <mat-select formControlName="semester">
+                <mat-option *ngFor="let sem of semesters" [value]="sem.id">
+                    {{ sem.name }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+            <mat-label>Duration</mat-label>
+            <input matInput formControlName="duration" />
+        </mat-form-field>
+    </form>
+
+    <!-- Dialog Actions -->
+    <mat-dialog-actions align="end">
+        <button mat-flat-button (click)="toggleNewModule()" color="warn">
+            Cancel
+        </button>
+
+        <button mat-flat-button (click)="createModule()" color="primary">
+            Save
+        </button>
+    </mat-dialog-actions>
+</div>

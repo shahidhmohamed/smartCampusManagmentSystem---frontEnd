@@ -18,7 +18,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { NotificationsService } from 'app/layout/common/notifications/notifications.service';
 import { Notification } from 'app/layout/common/notifications/notifications.types';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject } from 'rxjs';
 import { MessageCommunicationService } from '../messages/message.communication.service';
 
 @Component({
@@ -69,22 +69,35 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         this._MessageCommunicationService.notificationAnnounced$.subscribe(
             (w) => {
+                console.log('📥 Received Notification:', w); // Debugging
+
                 if (w.topic === 'SCHEDULE_NOTIFICATION') {
-                    // alert(w.data);
+                    console.log('SCHEDULE_NOTIFICATION');
+
                     if (w.data) {
-                        console.log('Notififications', w.data);
-                        this.notifications = w.data;
-                        this._changeDetectorRef.markForCheck();
+                        console.log('Notification Data Received:', w.data);
+
+                        if (!this.notifications) {
+                            this.notifications = [];
+                        }
+
+                        const newNotifications = Array.isArray(w.data)
+                            ? w.data
+                            : [w.data];
+
+                        this.notifications = [
+                            ...this.notifications,
+                            ...newNotifications,
+                        ];
+
+                        // Update unread count
+                        this._calculateUnreadCount();
+
+                        // Update UI
+                        this._changeDetectorRef.detectChanges();
                     } else {
-                        console.log('No Messages');
+                        console.log('⚠️ No Messages Received');
                     }
-                    // setTimeout(() => {
-                    //     if (w.data) {
-                    //         console.log("Notififications",w.data)
-                    //     } else {
-                    //         console.log('No Messages');
-                    //     }
-                    // }, 1000);
                 }
             }
         );
@@ -173,8 +186,18 @@ export class NotificationsComponent implements OnInit, OnDestroy {
      * Delete the given notification
      */
     delete(notification: Notification): void {
-        // Delete the notification
-        this._notificationsService.delete(notification.id).subscribe();
+        this._notificationsService.delete(notification.id).subscribe(() => {
+            // Remove from local list
+            this.notifications = this.notifications.filter(
+                (n) => n.id !== notification.id
+            );
+
+            // Update unread count
+            this._calculateUnreadCount();
+
+            // Update UI
+            this._changeDetectorRef.detectChanges();
+        });
     }
 
     /**

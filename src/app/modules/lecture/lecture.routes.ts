@@ -1,10 +1,11 @@
 import { Routes } from '@angular/router';
-import { ResourceManagment } from '../admin/resource-managment/list/list.component';
+import { TasksListComponent } from './admin-events/list/list.component';
+import { FileManagerComponent } from './file-manager-2/file-manager/file-manager.component';
 import { LectureAssignmentSubmitionsComponent } from './lecture-assignment-submitions/lecture-assignment-submitions.component';
 import { LectureAssignmentComponent } from './lecture-assignment/lecture-assignment.component';
 import { LectureDashboardComponent } from './lecture-dashboard/lecture-dashboard.component';
 import { ResourceApprovalListComponent } from './resource-managment/resource-approval-list/resource-approval-list.component';
-import { TasksListComponent } from './admin-events/list/list.component';
+import { StudentAttendenceComponent } from './student-attendence/student-attendence.component';
 
 export default [
     { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -16,4 +17,6 @@ export default [
     },
     { path: 'event-manager', component: TasksListComponent },
     { path: 'resourse', component: ResourceApprovalListComponent },
+    { path: 'Attendance', component: StudentAttendenceComponent },
+    { path: '-filectureles', component: FileManagerComponent },
 ] as Routes;

@@ -184,7 +184,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
         title: 'File Manager',
         type: 'basic',
         icon: 'heroicons_outline:cloud',
-        link: '/student/file-manager',
+        link: '/lecture/lecture-files',
     },
 
     {
@@ -212,6 +212,13 @@ export const defaultNavigation: FuseNavigationItem[] = [
         icon: 'heroicons_outline:academic-cap',
         link: '/lecture/assessment',
     },
+    {
+        id: 'staff_attendence',
+        title: 'Attendance',
+        type: 'basic',
+        icon: 'heroicons_outline:academic-cap',
+        link: '/lecture/Attendance',
+    },
 
     {
         id: 'lecture_event',
@@ -227,6 +234,13 @@ export const defaultNavigation: FuseNavigationItem[] = [
         type: 'basic',
         icon: 'heroicons_outline:calendar',
         link: '/lecture/resourse',
+    },
+    {
+        id: 'lecture_filemanager',
+        title: 'File Manager',
+        type: 'basic',
+        icon: 'heroicons_outline:cloud',
+        link: '/lecture/lecture-files',
     },
 ];
 export const compactNavigation: FuseNavigationItem[] = [

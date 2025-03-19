@@ -13,7 +13,7 @@ export class MessageCommunicationService {
     notificationAnnounced$ = this.notificationeSource.asObservable();
 
     public pushNotification(topic: string, message: any, data?: any) {
-        console.log(`📢 Broadcasting Notification:`, { topic, data });
+        console.log(`Broadcasting Notification:`, { topic, data });
         this.notificationeSource.next({ topic: topic, message: message, data });
     }
 }

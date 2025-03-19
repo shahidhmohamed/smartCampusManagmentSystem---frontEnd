@@ -84,7 +84,23 @@ export class NavigationService {
             if (item.id === 'lecture' && userRole !== 'ROLE_LECTURE') {
                 return false;
             }
+            if (item.id === 'staff_attendence' && userRole !== 'ROLE_LECTURE') {
+                return false;
+            }
+            if (
+                item.id === 'lecture_filemanager' &&
+                userRole !== 'ROLE_LECTURE'
+            ) {
+                return false;
+            }
             if (item.id === 'student' && userRole !== 'ROLE_STUDENT') {
+                return false;
+            }
+
+            if (
+                item.id === 'student_filemanager' &&
+                userRole !== 'ROLE_STUDENT'
+            ) {
                 return false;
             }
             if (

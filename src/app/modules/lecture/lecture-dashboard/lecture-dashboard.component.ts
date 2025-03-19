@@ -15,6 +15,8 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import { FuseConfirmationService } from '@fuse/services/confirmation';
 import { TranslocoModule } from '@ngneat/transloco';
 import { UserService } from 'app/core/user/user.service';
+import { MessageCommunicationService } from 'app/layout/common/messages/message.communication.service';
+import { Notification } from 'app/layout/common/notifications/notifications.types';
 import { IClassSchedule } from 'app/services/class-schedule/class-schedule.model';
 import { ClassScheduleService } from 'app/services/class-schedule/service/class-schedule.service';
 import { ICourseRegistration } from 'app/services/course-registration/course-registration.model';
@@ -64,6 +66,7 @@ export class LectureDashboardComponent implements OnInit {
     };
 
     allCourses: ICourse[] = [];
+    notifications: Notification[];
 
     allinstructor: IUser[] = [];
     allModules: IModule[] = [];
@@ -79,7 +82,8 @@ export class LectureDashboardComponent implements OnInit {
         private _moduleService: ModuleService,
         private _formBuilder: FormBuilder,
         private resourceService: ResourceService,
-        private _userService2: UserService
+        private _userService2: UserService,
+        private _MessageCommunicationService: MessageCommunicationService
     ) {}
 
     ngOnInit(): void {
@@ -141,7 +145,6 @@ export class LectureDashboardComponent implements OnInit {
         });
     }
 
-    /** Load all schedules based on registered courses */
     loadSchedules(): void {
         const lectureId = environment.user.id;
         this._scheduleService
@@ -151,7 +154,7 @@ export class LectureDashboardComponent implements OnInit {
                 sort: ['asc'],
             })
             .subscribe((res) => {
-                console.log('Raw API Response:', res.body); // Debugging
+                console.log('Raw API Response:', res.body);
 
                 if (!res.body || res.body.length === 0) {
                     console.warn('No schedules found');
@@ -159,7 +162,7 @@ export class LectureDashboardComponent implements OnInit {
                     return;
                 }
 
-                const now = new Date().getTime(); // Current timestamp
+                const now = new Date().getTime();
 
                 this.dataSource.data = res.body
                     .filter(
@@ -167,6 +170,9 @@ export class LectureDashboardComponent implements OnInit {
                             schedule.scheduleDate && schedule.scheduleTimeFrom
                     ) // Ensure valid data
                     .map((schedule) => {
+                        const moduleName =
+                            this.getModuleName(schedule.moduleId) ||
+                            'Scheduled Event';
                         const scheduleTimestamp = new Date(
                             `${schedule.scheduleDate}T${schedule.scheduleTimeFrom}:00`
                         ).getTime();
@@ -175,7 +181,50 @@ export class LectureDashboardComponent implements OnInit {
                     .filter((schedule) => schedule.scheduleTimestamp >= now) // Remove past schedules
                     .sort((a, b) => a.scheduleTimestamp - b.scheduleTimestamp); // Nearest first
 
-                console.log('Sorted Upcoming Schedule:', this.dataSource.data);
+                setTimeout(() => {
+                    this.calendarOptions.events = this.dataSource.data.map(
+                        (schedule) => ({
+                            title:
+                                this.getModuleName(schedule.moduleId) ||
+                                'Scheduled Event',
+                            start: new Date(
+                                `${schedule.scheduleDate}T${schedule.scheduleTimeFrom}:00`
+                            ),
+                            color: '#3f51b5',
+                            allDay: false,
+                        })
+                    );
+
+                    this.notifications = this.calendarOptions.events.map(
+                        (event) => ({
+                            title: event.title,
+                            id: '',
+                            icon: 'heroicons_mini:envelope',
+                            image: '',
+                            description: '',
+                            time: event.start.toString(),
+                            link: '',
+                            useRouter: false,
+                            read: false,
+                        })
+                    );
+
+                    this._MessageCommunicationService.pushNotification(
+                        'SCHEDULE_NOTIFICATION',
+                        'OK',
+                        this.notifications
+                    );
+
+                    console.log(
+                        'Updated Calendar Events:',
+                        this.calendarOptions.events
+                    );
+
+                    console.log(
+                        'Sorted Upcoming Schedule:',
+                        this.dataSource.data
+                    );
+                }, 1000);
             });
     }
 

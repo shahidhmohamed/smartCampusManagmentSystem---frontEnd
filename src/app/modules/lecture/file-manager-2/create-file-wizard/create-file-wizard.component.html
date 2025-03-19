@@ -1,0 +1,81 @@
+<!-- Dialog Title -->
+<h2
+    class="flex flex-col items-center p-3 text-center text-xl font-semibold text-gray-800 dark:text-white"
+>
+    Create Folder
+</h2>
+<mat-dialog-content class="flex flex-col space-y-4">
+    <form [formGroup]="fileForm">
+        <div class="flex flex-col md:flex-row">
+            <mat-form-field class="w-full">
+                <mat-label>File Name</mat-label>
+                <input matInput formControlName="name" />
+            </mat-form-field>
+        </div>
+
+        <div
+            class="flex flex-col md:flex-row md:space-x-4"
+            *ngIf="!data.currentFolder || !data.currentFolder.courseId"
+        >
+            <!-- Course ID -->
+            <mat-form-field class="mt-3 w-full">
+                <mat-label>Select Course</mat-label>
+                <input
+                    type="text"
+                    matInput
+                    [formControl]="coursesControl"
+                    [matAutocomplete]="auto"
+                    placeholder="Type to find"
+                />
+                <mat-autocomplete
+                    #auto="matAutocomplete"
+                    [displayWith]="displayCourseName"
+                    (optionSelected)="onSelectCourse($event)"
+                >
+                    <mat-option
+                        *ngFor="let course of filteredCourses$ | async"
+                        [value]="course"
+                    >
+                        {{ course.courseCode }} ({{ course.courseName }})
+                    </mat-option>
+                </mat-autocomplete>
+            </mat-form-field>
+
+            <!-- <mat-form-field class="w-full">
+                <mat-label>Course</mat-label>
+                <input matInput formControlName="course" />
+            </mat-form-field> -->
+        </div>
+
+        <!-- <div
+            class="flex flex-col md:flex-row"
+            *ngIf="!data.currentFolder || !data.currentFolder.semester"
+        >
+            <mat-form-field class="w-full">
+                <mat-label>Semester</mat-label>
+                <input matInput formControlName="semester" />
+            </mat-form-field>
+        </div> -->
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions class="flex flex-col items-center p-1 text-center">
+    <!-- Dialog Actions (Centered Buttons) -->
+    <div class="flex space-x-3">
+        <button
+            mat-button
+            class="rounded-lg bg-gray-200 px-4 py-2 text-2xl text-gray-600 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+            (click)="cancel()"
+        >
+            Cancel
+        </button>
+
+        <button
+            mat-button
+            class="rounded-lg bg-red-500 px-4 py-2 text-2xl text-white shadow-lg hover:bg-red-600 focus:outline-none focus:ring focus:ring-red-300"
+            (click)="createFolder()"
+        >
+            Create
+        </button>
+    </div>
+</mat-dialog-actions>
