@@ -218,7 +218,7 @@ export class StudentAssessmentsComponent implements OnInit {
     loadModules(courseId: string, semester: string | null): void {
         if (!semester) {
             this.modules = [];
-            return;
+            return; 
         }
 
         this._moduleService
