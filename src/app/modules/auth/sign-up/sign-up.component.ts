@@ -1,4 +1,10 @@
-import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import {
+    ChangeDetectorRef,
+    Component,
+    OnInit,
+    ViewChild,
+    ViewEncapsulation,
+} from '@angular/core';
 import {
     FormsModule,
     NgForm,
@@ -56,7 +62,8 @@ export class SignUpClassicComponent implements OnInit {
     constructor(
         private _authService: AuthService,
         private _formBuilder: UntypedFormBuilder,
-        private _router: Router
+        private _router: Router,
+        private _cd: ChangeDetectorRef
     ) {}
 
     // -----------------------------------------------------------------------------------------------------
@@ -100,25 +107,41 @@ export class SignUpClassicComponent implements OnInit {
         // Sign up
         this._authService.signUp(this.signUpForm.value).subscribe(
             (response) => {
-                // Navigate to the confirmation required page
-                this._router.navigateByUrl('/confirmation-required');
+                if (response) {
+                    // Navigate to the confirmation required page
+                    this._router.navigateByUrl('/confirmation-required');
+                    this._cd.detectChanges();
+                } else {
+                    this.handleSignUpError();
+                    this._cd.detectChanges();
+                }
             },
-            (response) => {
-                // Re-enable the form
-                this.signUpForm.enable();
-
-                // Reset the form
-                this.signUpNgForm.resetForm();
-
-                // Set the alert
-                this.alert = {
-                    type: 'error',
-                    message: 'Something went wrong, please try again.',
-                };
-
-                // Show the alert
-                this.showAlert = true;
+            (error) => {
+                // Handle API error
+                console.error('Sign up error:', error);
+                this.handleSignUpError(error);
+                this._cd.detectChanges();
             }
         );
+    }
+
+    handleSignUpError(error?: any): void {
+        // Re-enable the form
+        // this.signUpForm.enable();
+
+        // Reset the form
+        // this.signUpNgForm.resetForm();
+
+        // Set the alert with a dynamic message
+        this.alert = {
+            type: 'error',
+            message:
+                error?.error?.message ||
+                'Something went wrong, please try again.',
+        };
+
+        // Show the alert
+        this.showAlert = true;
+        this._cd.detectChanges();
     }
 }
