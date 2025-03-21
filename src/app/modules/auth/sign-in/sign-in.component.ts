@@ -116,7 +116,7 @@ export class AuthSignInComponent implements OnInit {
 
                 // Fetch user details after login
                 this._httpClient
-                    .get<User>('/api/account')
+                    .get<User>('http://100.88.28.94:8080/api/account')
                     .pipe(
                         map((u) => {
                             console.log('User Data:', u);

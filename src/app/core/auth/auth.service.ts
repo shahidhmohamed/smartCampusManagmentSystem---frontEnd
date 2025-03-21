@@ -135,22 +135,24 @@ export class AuthService {
             return throwError('User is already logged in.');
         }
 
-        return this._httpClient.post('api/authenticate', credentials).pipe(
-            switchMap((response: any) => {
-                // Store the access token in the local storage
-                this.accessToken = response.id_token;
+        return this._httpClient
+            .post('http://100.88.28.94:8080/api/authenticate', credentials)
+            .pipe(
+                switchMap((response: any) => {
+                    // Store the access token in the local storage
+                    this.accessToken = response.id_token;
 
-                return this.signInUsingToken().pipe(
-                    map((signInUsingTokenResponse: any) => {
-                        // Merge the responses if needed
-                        return {
-                            signInResponse: response,
-                            signInUsingTokenResponse,
-                        };
-                    })
-                );
-            })
-        );
+                    return this.signInUsingToken().pipe(
+                        map((signInUsingTokenResponse: any) => {
+                            // Merge the responses if needed
+                            return {
+                                signInResponse: response,
+                                signInUsingTokenResponse,
+                            };
+                        })
+                    );
+                })
+            );
     }
 
     getCurrentUser(): any {

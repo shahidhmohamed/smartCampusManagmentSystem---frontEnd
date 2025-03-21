@@ -83,13 +83,6 @@ export class ChatProfileCreateComponent implements OnInit {
             id: [''],
             userId: ['', Validators.required],
             name: ['', Validators.required],
-            // about: [''],
-            // title: [''],
-            // birthday: [''],
-            // phoneNumber: [
-            //     '',
-            //     [Validators.required, Validators.pattern('^[0-9]+$')],
-            // ],
             email: ['', [Validators.required, Validators.email]],
         });
 
@@ -170,26 +163,9 @@ export class ChatProfileCreateComponent implements OnInit {
                 console.log('Chat Createddddddddddd');
                 this._dialogRef.close(true);
             }
-            // this.selectedChat = res.body;
-            // this.selectedChat.messages = [];
             this._changeDetectorRef.detectChanges();
         });
 
-        // if (this.isEditMode) {
-        //     this.updateUserProfile(userProfile);
-        // } else {
-        //     const newRegister: NewChatUser = {
-        //         ...userProfile,
-        //         id: null,
-        //     };
-        //     this._chatUserService.create(newRegister).subscribe(
-        //         () => {
-        //             console.log('User Profile Created:', userProfile);
-        //             this._dialogRef.close(true);
-        //         },
-        //         (error) => console.error('Error creating user:', error)
-        //     );
-        // }
     }
 
     updateUserProfile(userProfile: any): void {

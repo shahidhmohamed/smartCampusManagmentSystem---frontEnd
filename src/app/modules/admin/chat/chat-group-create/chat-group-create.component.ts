@@ -131,10 +131,10 @@ export class ChatGroupCreateComponent implements OnInit {
             selectedStudent &&
             !this.selectedMembers.some((m) => m.id === selectedStudent.id)
         ) {
-            this.selectedMembers.push(selectedStudent); // ✅ Add user to the selected list
+            this.selectedMembers.push(selectedStudent); 
             this.groupChatForm.patchValue({ members: this.selectedMembers });
         }
-        this.studentControl.setValue(''); // ✅ Clear input after selection
+        this.studentControl.setValue(''); 
     }
 
     removeMember(member: IUser) {

@@ -77,7 +77,6 @@ export class ChatsComponent implements OnInit, OnDestroy {
         this.getAllGroupMembers();
     }
 
-    // ✅ Load Chat Users
     getAllChatsMerged(): void {
         let ownerChats: IChat[] = [];
         let contactChats: IChat[] = [];

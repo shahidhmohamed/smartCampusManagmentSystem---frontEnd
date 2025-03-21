@@ -12,7 +12,6 @@
                 <input matInput formControlName="name" />
             </mat-form-field>
         </div>
-
         <div
             class="flex flex-col md:flex-row md:space-x-4"
             *ngIf="!data.currentFolder || !data.currentFolder.courseId"
@@ -40,22 +39,7 @@
                     </mat-option>
                 </mat-autocomplete>
             </mat-form-field>
-
-            <!-- <mat-form-field class="w-full">
-                <mat-label>Course</mat-label>
-                <input matInput formControlName="course" />
-            </mat-form-field> -->
         </div>
-
-        <!-- <div
-            class="flex flex-col md:flex-row"
-            *ngIf="!data.currentFolder || !data.currentFolder.semester"
-        >
-            <mat-form-field class="w-full">
-                <mat-label>Semester</mat-label>
-                <input matInput formControlName="semester" />
-            </mat-form-field>
-        </div> -->
     </form>
 </mat-dialog-content>
 
