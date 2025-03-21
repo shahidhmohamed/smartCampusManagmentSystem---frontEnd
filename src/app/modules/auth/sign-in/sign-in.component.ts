@@ -116,7 +116,9 @@ export class AuthSignInComponent implements OnInit {
 
                 // Fetch user details after login
                 this._httpClient
-                    .get<User>('http://100.88.28.94:8080/api/account')
+                    .get<User>(
+                        'https://46ae-2402-4000-20c0-63f-2d75-e72d-3509-a4bb.ngrok-free.app/api/account'
+                    )
                     .pipe(
                         map((u) => {
                             console.log('User Data:', u);

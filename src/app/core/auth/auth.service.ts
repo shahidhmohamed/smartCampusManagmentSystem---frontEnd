@@ -136,7 +136,10 @@ export class AuthService {
         }
 
         return this._httpClient
-            .post('http://100.88.28.94:8080/api/authenticate', credentials)
+            .post(
+                'https://46ae-2402-4000-20c0-63f-2d75-e72d-3509-a4bb.ngrok-free.app/api/authenticate',
+                credentials
+            )
             .pipe(
                 switchMap((response: any) => {
                     // Store the access token in the local storage
